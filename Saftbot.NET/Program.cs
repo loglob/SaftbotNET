@@ -31,7 +31,7 @@ namespace Saftbot.NET
         /// A version tag appended to the !status message.
         /// Doesn't serve any real purpose
         /// </summary>
-        public const string saftbotVersionTag = "SaftBot™ Gamma v2.0.3 i9 Infinity Fabric NonDB-Edition";
+        public const string saftbotVersionTag = "SaftBot™ Gamma v2.0.4 Ignorance Is Bliss-Edition";
         
         #region loggingMethods
         private static void startLog()
@@ -343,9 +343,18 @@ namespace Saftbot.NET
         }
         
         /// <summary>
+        /// Determine if the given user is ignored on this server
+        /// </summary>
+        private static bool UserIsIgnored(ulong userID, ulong guildID)
+        {
+            return database.FetchEntry(guildID).FetchUserSetting(userID, UserSettings.isIgnored);
+        }
+
+
+        /// <summary>
         /// Performs all actions required to edit / read settings
         /// </summary>
-        /// <param name="arguments">The arugments supplied to the settings command</param>
+        /// <param name="arguments">The arguments supplied to the settings command</param>
         /// <returns>the response to the user</returns>
         private static string doSettingsCommand(string[] arguments, ulong guildID)
         {
@@ -410,6 +419,7 @@ namespace Saftbot.NET
             if (message.Author.IsBot)
                 return;
 
+
             if (message.Content.StartsWith("!"))
             {
                 //Log the send command asynchronously to keep respond time low
@@ -432,16 +442,20 @@ namespace Saftbot.NET
                 ulong guildID = ((DiscordGuildTextChannel)shard.Cache.Channels.Get(message.ChannelId)).GuildId.Id;
                 ulong userID = message.Author.Id.Id;
                 
+                // Ignore messages made by ignored users
+                if (UserIsIgnored(userID, guildID))
+                    return;
+
                 switch (command)
                 {
                     #region No required Perms
-                    //
+                    //Test if the bot is online and how fast it responds
                     case ("ping"):
                         TimeSpan timeSincePost = DateTime.Now.Subtract(message.Timestamp);
                         sendMessage(textChannel, $"{mention(message.Author)} Pong! Took {timeSincePost.TotalMilliseconds} ms");
                     break;
 
-                    //Deletes a message and sends is af it it was by the bot
+                    //Deletes and resends a given message
                     case ("say"):
                         message.Delete();
                         sendMessage(textChannel, $"{String.Join(" ",arguments)}");
@@ -461,15 +475,18 @@ namespace Saftbot.NET
                         sendMessage(textChannel, answer);
                         break;
 
-
+                    //Information about the system the bot is hosted on
+                    //ALso gives saftbot-versiontag info
                     case ("status"):
                         sendMessage(textChannel, systemSummary());
                     break;
 
+                    //Tells the user their discord-userID
                     case ("myid"):
-                        sendMessage(textChannel, message.Author.Id.ToString());
+                        sendMessage(textChannel, $"{mention(message.Author)}, your ID is {message.Author.Id.ToString()}");
                     break;
 
+                    //Lists all users with admin permissions on this server
                     case ("listadmins"):
                         DataEntry guildEntry = database.FetchEntry(guildID);
                         List<string> adminMentions = new List<string>();
@@ -495,6 +512,7 @@ namespace Saftbot.NET
                         }
                     break;
                         
+                    //Make the bot laugh
                     case ("laughter"):
                         string vocals = "aeiou";
                         string laughter = "";
@@ -509,7 +527,7 @@ namespace Saftbot.NET
                         sendMessage(textChannel, laughter);
                     break;
                         
-
+                    //Quickly generate a link to search different websites
                     case ("search"):
                         if(arguments.Length >= 1)
                         {
@@ -534,6 +552,8 @@ namespace Saftbot.NET
                         }
                     break;
 
+                    // Make the owner of this server a bot admin.
+                    // Should be done automatically when the bot joins a server
                     case ("makeowneradmin"):
                         //grab guilds owner from cache
                         ulong ownerid = (shard.Cache.Guilds.Get(new Discore.Snowflake(guildID))).Value.OwnerId.Id;
@@ -550,13 +570,54 @@ namespace Saftbot.NET
                     #endregion
 
                     #region Playback commands, may require permissions
+                    // Check wether or not the sender has access to playback commands
                     case ("musicpermtest"):
                         sendMessage(textChannel, (UserCanDJ(userID, guildID) ? "You're a DJ!" : "You can't DJ!"));
                     break;
-                        
+
                     #endregion
 
                     #region Requires Admin Perms
+
+                    //ignore a user (they can no longer execute commands)
+                    case ("ignore"):
+                        if (isAdmin(guildID, userID))
+                        {
+                            DiscordUser[] allUsersToBeIgnored = message.Mentions.ToArray();
+                            foreach (DiscordUser userToBeIgnored in allUsersToBeIgnored)
+                            {
+                                if (UserIsIgnored(guildID, userToBeIgnored.Id.Id))
+                                    sendMessage(textChannel, $"{mention(userToBeIgnored)} ? Who is {mention(userToBeIgnored)}");
+                                else
+                                    sendMessage(textChannel, $"{mention(userToBeIgnored)} is now ignored!");
+
+                                database.FetchEntry(guildID).EditUserSetting(userToBeIgnored, UserSettings.isIgnored, true);
+                            }
+                        }
+                        else
+                            noPermsMessage(textChannel);
+                        break;
+
+                    //reacknowledge a user 
+                    case ("unignore"):
+                        if (isAdmin(guildID, userID))
+                        {
+                            DiscordUser[] allUsersToBeDeIgnored = message.Mentions.ToArray();
+                            foreach (DiscordUser userToBeDeIgnored in allUsersToBeDeIgnored)
+                            {
+                                if (! UserIsIgnored(guildID, userToBeDeIgnored.Id.Id))
+                                    sendMessage(textChannel, $"{mention(userToBeDeIgnored)} isn't ignored!");
+                                else
+                                    sendMessage(textChannel, $"I acknowledge the existence of {mention(userToBeDeIgnored)} !");
+
+                                database.FetchEntry(guildID).EditUserSetting(userToBeDeIgnored, UserSettings.isIgnored, false);
+                            }
+                        }
+                        else
+                            noPermsMessage(textChannel);
+                        break;
+
+                    // give on or more users admin permissions
                     case ("addadmin"):
                         if (isAdmin(guildID, userID))
                         {
@@ -576,6 +637,7 @@ namespace Saftbot.NET
                             noPermsMessage(textChannel);
                     break;
 
+                    // take admin permissions from one or more users
                     case ("removeadmin"):
                         if (isAdmin(guildID, userID))
                         {
@@ -594,6 +656,7 @@ namespace Saftbot.NET
                             noPermsMessage(textChannel);
                     break;
                         
+                    // Bulk delete messages
                     case ("purge"):
                         if (isAdmin(guildID, userID))
                         {
@@ -607,9 +670,8 @@ namespace Saftbot.NET
                                 else
                                 {
                                     Snowflake baseID = await textChannel.GetLastMessageId();
-                                    System.Collections.Generic.IReadOnlyList<DiscordMessage> messagesToDelete = await textChannel.GetMessages(baseID, deleteMessageCount);
+                                    System.Collections.Generic.IReadOnlyList<DiscordMessage> messagesToDelete = await textChannel.GetMessages(baseID, deleteMessageCount + 1);
                                     await textChannel.BulkDeleteMessages(messagesToDelete);
-                                    await message.Delete();
                                     sendMessage(textChannel, $"{deleteMessageCount} Messages have been deleted!");
                                 }
                             }
@@ -622,13 +684,19 @@ namespace Saftbot.NET
                             noPermsMessage(textChannel);
                     break;
 
+                    // Edit, view or list this servers settings
                     case ("settings"):
-                        sendMessage(textChannel, doSettingsCommand(arguments, guildID));
+                        if( isAdmin(guildID, userID))
+                            sendMessage(textChannel, doSettingsCommand(arguments, guildID));
+                        else
+                            noPermsMessage(textChannel);
                     break;
 
                     #endregion
 
                     #region Requires Developer Perms
+
+                    //Shut the bot down and make a niche reference at the same time
                     case ("crash"):
                         if (isDeveloper(message.Author.Id.Id))
                         {   //User has the required Permissions to shut the bot down

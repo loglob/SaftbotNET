@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Saftbot.NET
+﻿namespace Saftbot.NET
 {
     /// <summary>
     /// The 16 possible bools that are unique to each server as settings
@@ -19,6 +15,7 @@ namespace Saftbot.NET
     public enum UserSettings
     {
         isAdmin,
-        isDJ
+        isDJ,
+        isIgnored
     }
 }

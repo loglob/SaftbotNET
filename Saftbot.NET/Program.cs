@@ -31,7 +31,7 @@ namespace Saftbot.NET
         /// A version tag appended to the !status message.
         /// Doesn't serve any real purpose
         /// </summary>
-        public const string saftbotVersionTag = "SaftBot™ Experimental v2.0.2 Cutting Edge NonDB-Edition";
+        public const string saftbotVersionTag = "SaftBot™ Gamma v2.0.3 i9 Infinity Fabric NonDB-Edition";
         
         #region loggingMethods
         private static void startLog()
@@ -136,11 +136,11 @@ namespace Saftbot.NET
         }
 
         /// <summary>
-        /// when using !search, this method determines the search prefix used
+        /// when using !search, this method determines the search prefix used as well as the escape chars for space
         /// </summary>
         /// <param name="shorthand">arguments[0] minus the - at begining</param>
         /// <returns></returns>
-        private static string searchPrefixByShorthand(string shorthand, ulong guildID)
+        private static string[] parseSearchService(string shorthand, ulong guildID)
         {
             shorthand = shorthand.ToLower();
             
@@ -148,61 +148,61 @@ namespace Saftbot.NET
             if(shorthand.StartsWith("4c"))
             {
                 if (shorthand.StartsWith("4c_") && shorthand.Length > 3)
-                    return $"https://boards.4chan.org/{ shorthand.Substring(3) }/";
+                    return new string[] { $"https://boards.4chan.org/{ shorthand.Substring(3) }/catalog#s=", "+" };
                 else
-                    return "https://boards.4chan.org/g/";
+                    return new string[] { "https://boards.4chan.org/g/catalog#s=", "+" };
             }
 
             //search reddit and possibly a given subreddit
             if(shorthand.StartsWith("r"))
             {
-                if(shorthand.StartsWith("r_") && shorthand.Length > 2)
-                    return $"https://www.reddit.com/r/{ shorthand.Substring(2) }/search?restrict_sr=on&q=";
+                if (shorthand.StartsWith("r_") && shorthand.Length > 2)
+                    return new string[] { $"https://www.reddit.com/r/{ shorthand.Substring(2) }/search?restrict_sr=on&q=", "+" };
                 else
-                    return "https://www.reddit.com/search?q=";
+                    return new string[] { "https://www.reddit.com/search?q=", "+" };
             }
 
             //search gomovies under possibly given domain
             if(shorthand.StartsWith("go"))
             {
                 if (shorthand.StartsWith("go_") && shorthand.Length > 3)
-                    return $"https://gomovies.{ shorthand.Substring(3) }/search-query/";
+                    return new string[] { $"https://gomovies.{ shorthand.Substring(3) }/search-query/", "+" };
                 else
-                    return "https://gomovies.sc/search-query/";
+                    return new string[] { "https://gomovies.sc/search-query/", "+" };
             }
 
-            switch(shorthand)
+            switch (shorthand)
             {
                 case "g":
-                    return "https://google.com/search?q=";
+                    return new string[] { "https://google.com/search?q=", "+" };
 
                 case "ddg":
-                    return "https://duckduckgo.com/?q=";
+                    return new string[] { "https://duckduckgo.com/?q=", "+" };
 
                 case "tpb":
-                    return "https://thepiratebay.org/search/";
+                    return new string[] { "https://thepiratebay.org/search/", "%20" };
 
                 case "yt":
-                    return "https://www.youtube.com/results?search_query=";
+                    return new string[] { "https://www.youtube.com/results?search_query=", "+" };
 
                 case "st":
-                    return "http://store.steampowered.com/search/?term=";
+                    return new string[] { "http://store.steampowered.com/search/?term=", "+" };
 
                 case "tw":
-                    return "https://twitter.com/search?q=";
+                    return new string[] { "https://twitter.com/search?q=", "%20" };
 
                 case "nya":
-                    return "https://nyaa.si/?q=";
-                    
+                    return new string[] { "https://nyaa.si/?q=", "+" };
+
                 default:
                     if (database.FetchEntry(guildID).FetchSetting(ServerSettings.useGoogle))
-                        return "https://google.com/search?q=";
+                        return new string[] { "https://google.com/search?q=", "+" };
                     else
-                        return "https://duckduckgo.com/?q=";
+                        return new string[] { "https://duckduckgo.com/?q=", "+" };
             }
         }
 
-        private static string searchServiceShorthands()
+        private static string listSearchServices()
         {
             return "\nG: Google             \nDDG: Duckduckgo           \nTPB: The Piratebay            " +
                    "\nYT: Youtube           \n4C: 4chan                 \n4C_{x}: The /{x}/ board       " +
@@ -511,24 +511,27 @@ namespace Saftbot.NET
                         
 
                     case ("search"):
-                        string searchPrefix = searchPrefixByShorthand("", guildID);
+                        if(arguments.Length >= 1)
+                        {
+                            string[] searchService = parseSearchService("", guildID);
+                            string[] searchArgs = arguments;
 
-                        if (arguments.Length >= 1)
                             if (arguments[0].StartsWith("-"))
                             {
-                                if (arguments[0].ToLower() == "-list")
+                                if(arguments[0].ToLower() == "-list")
                                 {
-                                    sendMessage(textChannel, "Possible search service shorthands are:" + searchServiceShorthands());
+                                    sendMessage(textChannel, "Available search services are:\n"+listSearchServices());
                                     return;
                                 }
-                                else
-                                    searchPrefix = searchPrefixByShorthand(arguments[0].Substring(1), guildID);
 
-                                sendMessage(textChannel, $"{searchPrefix}" +
-                                           $"{String.Join(" ", arguments).Substring(arguments[0].Length + 1)}");
-                                return;
+                                searchService = parseSearchService(arguments[0].Substring(1), guildID);
+                                searchArgs = new string[arguments.Length - 1];
+
+                                Array.Copy(arguments, 1, searchArgs, 0, arguments.Length - 1);
                             }
-                        sendMessage(textChannel, $"{searchPrefix}{String.Join("+", arguments)}");
+
+                            sendMessage(textChannel, searchService[0] + String.Join(searchService[1], searchArgs));
+                        }
                     break;
 
                     case ("makeowneradmin"):

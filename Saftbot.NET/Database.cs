@@ -66,6 +66,7 @@ namespace Saftbot.NET
                     if (UInt64.TryParse(Path.GetFileNameWithoutExtension(subPath), out ulong id))
                     {
                         PreloadedFiles.Add(id, File.ReadAllBytes(subPath));
+                        
                     }
                 }
             }

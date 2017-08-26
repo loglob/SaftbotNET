@@ -6,14 +6,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="discord_token.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Discore" Version="2.1.2" />
     <PackageReference Include="System.ValueTuple" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="discord_token.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="start.sh">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

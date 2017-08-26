@@ -515,14 +515,19 @@ namespace Saftbot.NET
 
                         if (arguments.Length >= 1)
                             if (arguments[0].StartsWith("-"))
-                                if(arguments[0].ToLower() == "list")
+                            {
+                                if (arguments[0].ToLower() == "-list")
                                 {
                                     sendMessage(textChannel, "Possible search service shorthands are:" + searchServiceShorthands());
                                     return;
                                 }
                                 else
                                     searchPrefix = searchPrefixByShorthand(arguments[0].Substring(1), guildID);
-                        
+
+                                sendMessage(textChannel, $"{searchPrefix}" +
+                                           $"{String.Join(" ", arguments).Substring(arguments[0].Length + 1)}");
+                                return;
+                            }
                         sendMessage(textChannel, $"{searchPrefix}{String.Join("+", arguments)}");
                     break;
 

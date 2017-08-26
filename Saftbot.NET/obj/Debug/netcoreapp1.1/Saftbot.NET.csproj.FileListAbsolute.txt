@@ -1,0 +1,11 @@
+C:\Users\moritz\Source\Repos\Saftbot.NET\Saftbot.NET\bin\Debug\netcoreapp1.1\discord_token.txt
+C:\Users\moritz\Source\Repos\Saftbot.NET\Saftbot.NET\bin\Debug\netcoreapp1.1\Saftbot.NET.deps.json
+C:\Users\moritz\Source\Repos\Saftbot.NET\Saftbot.NET\bin\Debug\netcoreapp1.1\Saftbot.NET.runtimeconfig.json
+C:\Users\moritz\Source\Repos\Saftbot.NET\Saftbot.NET\bin\Debug\netcoreapp1.1\Saftbot.NET.runtimeconfig.dev.json
+C:\Users\moritz\Source\Repos\Saftbot.NET\Saftbot.NET\bin\Debug\netcoreapp1.1\Saftbot.NET.dll
+C:\Users\moritz\Source\Repos\Saftbot.NET\Saftbot.NET\bin\Debug\netcoreapp1.1\Saftbot.NET.pdb
+C:\Users\moritz\Source\Repos\Saftbot.NET\Saftbot.NET\obj\Debug\netcoreapp1.1\Saftbot.NET.csprojResolveAssemblyReference.cache
+C:\Users\moritz\Source\Repos\Saftbot.NET\Saftbot.NET\obj\Debug\netcoreapp1.1\Saftbot.NET.AssemblyInfo.cs
+C:\Users\moritz\Source\Repos\Saftbot.NET\Saftbot.NET\obj\Debug\netcoreapp1.1\Saftbot.NET.dll
+C:\Users\moritz\Source\Repos\Saftbot.NET\Saftbot.NET\obj\Debug\netcoreapp1.1\Saftbot.NET.pdb
+C:\Users\moritz\Source\Repos\Saftbot.NET\Saftbot.NET\bin\Debug\netcoreapp1.1\start.sh

@@ -7579,10 +7579,10 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\moritz\\Source\\Repos\\Saftbot.NET\\Saftbot.NET\\Saftbot.NET.csproj",
+      "projectUniqueName": "C:\\Users\\moritz\\Source\\Repos\\SaftbotNET\\Saftbot.NET\\Saftbot.NET.csproj",
       "projectName": "Saftbot.NET",
-      "projectPath": "C:\\Users\\moritz\\Source\\Repos\\Saftbot.NET\\Saftbot.NET\\Saftbot.NET.csproj",
-      "outputPath": "C:\\Users\\moritz\\Source\\Repos\\Saftbot.NET\\Saftbot.NET\\obj\\",
+      "projectPath": "C:\\Users\\moritz\\Source\\Repos\\SaftbotNET\\Saftbot.NET\\Saftbot.NET.csproj",
+      "outputPath": "C:\\Users\\moritz\\Source\\Repos\\SaftbotNET\\Saftbot.NET\\obj\\",
       "projectStyle": "PackageReference",
       "originalTargetFrameworks": [
         "netcoreapp1.1.1"

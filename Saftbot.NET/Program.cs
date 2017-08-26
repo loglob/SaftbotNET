@@ -31,10 +31,8 @@ namespace Saftbot.NET
         /// A version tag appended to the !status message.
         /// Doesn't serve any real purpose
         /// </summary>
-        public const string saftbotVersionTag = "SaftBot™ Experimental v2.0.1 bleeding edge turbo nonDB edition " +
-                                                 "(with director comments)";
-
-
+        public const string saftbotVersionTag = "SaftBot™ Experimental v2.0.2 Cutting Edge NonDB-Edition";
+        
         #region loggingMethods
         private static void startLog()
         {
@@ -135,6 +133,82 @@ namespace Saftbot.NET
                             return (ServerSettings)settingNr;
                 return null;
             }
+        }
+
+        /// <summary>
+        /// when using !search, this method determines the search prefix used
+        /// </summary>
+        /// <param name="shorthand">arguments[0] minus the - at begining</param>
+        /// <returns></returns>
+        private static string searchPrefixByShorthand(string shorthand, ulong guildID)
+        {
+            shorthand = shorthand.ToLower();
+            
+            //search 4chan/g/ and possibly a given board
+            if(shorthand.StartsWith("4c"))
+            {
+                if (shorthand.StartsWith("4c_") && shorthand.Length > 3)
+                    return $"https://boards.4chan.org/{ shorthand.Substring(3) }/";
+                else
+                    return "https://boards.4chan.org/g/";
+            }
+
+            //search reddit and possibly a given subreddit
+            if(shorthand.StartsWith("r"))
+            {
+                if(shorthand.StartsWith("r_") && shorthand.Length > 2)
+                    return $"https://www.reddit.com/r/{ shorthand.Substring(2) }/search?restrict_sr=on&q=";
+                else
+                    return "https://www.reddit.com/search?q=";
+            }
+
+            //search gomovies under possibly given domain
+            if(shorthand.StartsWith("go"))
+            {
+                if (shorthand.StartsWith("go_") && shorthand.Length > 3)
+                    return $"https://gomovies.{ shorthand.Substring(3) }/search-query/";
+                else
+                    return "https://gomovies.sc/search-query/";
+            }
+
+            switch(shorthand)
+            {
+                case "g":
+                    return "https://google.com/search?q=";
+
+                case "ddg":
+                    return "https://duckduckgo.com/?q=";
+
+                case "tpb":
+                    return "https://thepiratebay.org/search/";
+
+                case "yt":
+                    return "https://www.youtube.com/results?search_query=";
+
+                case "st":
+                    return "http://store.steampowered.com/search/?term=";
+
+                case "tw":
+                    return "https://twitter.com/search?q=";
+
+                case "nya":
+                    return "https://nyaa.si/?q=";
+                    
+                default:
+                    if (database.FetchEntry(guildID).FetchSetting(ServerSettings.useGoogle))
+                        return "https://google.com/search?q=";
+                    else
+                        return "https://duckduckgo.com/?q=";
+            }
+        }
+
+        private static string searchServiceShorthands()
+        {
+            return "\nG: Google             \nDDG: Duckduckgo           \nTPB: The Piratebay            " +
+                   "\nYT: Youtube           \n4C: 4chan                 \n4C_{x}: The /{x}/ board       " +
+                   "\nST: Steam Store       \nTW: Twitter               \nNYA: nyaa.si anime tracker    " +
+                   "\nR: Reddit             \nR_{x}: {x}-subreddit      \nGO: GoMovies streaming site   " +
+                   "\nGO_{x} GOMovies.{x}   ";
         }
         #endregion
 
@@ -437,11 +511,18 @@ namespace Saftbot.NET
                         
 
                     case ("search"):
-                        string searchPrefix = "https://duckduckgo.com/?q=";
+                        string searchPrefix = searchPrefixByShorthand("", guildID);
 
-                        if (database.FetchEntry(guildID).FetchSetting(ServerSettings.useGoogle))
-                            searchPrefix = "https://google.com/search?q=";
-
+                        if (arguments.Length >= 1)
+                            if (arguments[0].StartsWith("-"))
+                                if(arguments[0].ToLower() == "list")
+                                {
+                                    sendMessage(textChannel, "Possible search service shorthands are:" + searchServiceShorthands());
+                                    return;
+                                }
+                                else
+                                    searchPrefix = searchPrefixByShorthand(arguments[0].Substring(1), guildID);
+                        
                         sendMessage(textChannel, $"{searchPrefix}{String.Join("+", arguments)}");
                     break;
 

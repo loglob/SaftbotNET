@@ -18,9 +18,9 @@ namespace Saftbot.NET
     class Program
     {
         /// <summary>
-        /// The database instance used by this bot instance
+        /// The database instance used by the bot
         /// </summary>
-        private static Database database;
+        internal static Database database;
 
         /// <summary>
         /// The path into which log files are written
@@ -31,15 +31,18 @@ namespace Saftbot.NET
         /// A version tag appended to the !status message.
         /// Doesn't serve any real purpose
         /// </summary>
-        public const string saftbotVersionTag = "SaftBot™ Gamma v2.0.4 Ignorance Is Bliss-Edition";
+        public const string saftbotVersionTag = "SaftBot™ Gamma v2.0.7 'Cleaning up program.cs'-Edition";
         
         #region loggingMethods
+        /// <summary>
+        /// Create an empty log-file and save its path to logFilePath
+        /// </summary>
         private static void startLog()
         {
             //Get absolute path to the bot (the directory the Saftbot.NET.dll file is in)
             string assemblyPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             
-            //check if / or \ is regquired to build path
+            //check if / or \ is required to build path
             bool isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             string logPath;
 
@@ -54,7 +57,7 @@ namespace Saftbot.NET
             //figure out relative path for new file
             DateTime startTime = DateTime.Now;
             
-            //Build Path ti store current logfile in
+            //Build Path to store current logfile in
             logPath += startTime.Year.ToString() + "-" + startTime.Month.ToString() + "-" +
                                         startTime.Day.ToString() + "_" + startTime.Hour.ToString() + "-" + 
                                         startTime.Minute.ToString()+ "-" + startTime.Second.ToString() + ".txt";
@@ -67,7 +70,10 @@ namespace Saftbot.NET
             FS.Dispose();
         }
 
-        //Please use this method instead of Console.WriteLine for making console entries
+        /// <summary>
+        /// Write a string to the log file and output it to console
+        /// Use this instead of direct console methods
+        /// </summary>
         private static void log(string entry)
         {
             StreamWriter SW = File.AppendText(logFilePath);
@@ -78,14 +84,43 @@ namespace Saftbot.NET
             Console.WriteLine(entry);
         }
         
+        private static void logError(Exception e)
+        {
+            log($"Encountered {e.GetType().ToString()} at {e.Source} \n Message: {e.Message} \n Data: {e.Data} \n " +
+                $"Check {e.HelpLink} for help");
+        }
+
         private static void logError(Exception e, string source)
         {
-            log($"Encountered {e.GetType().ToString()} while {source}");
-            log($"{e.Message} \n at: {e.Source} \n data: {e.Data} \n help at: {e.HelpLink}");
+            log($"Encountered {e.GetType().ToString()} while {source} \n {e.Message} \n at: {e.Source} \n data: {e.Data} \n" +
+                $"help at: {e.HelpLink}");
         }
         #endregion
 
         #region helper methods
+        private static string specialAndJoin(IEnumerable<string> list)
+        {   return specialAndJoin(list.ToArray());  }
+
+        private static string specialAndJoin(string[] array)
+        {
+            string joined = "";
+
+            for (int i = 0; i < array.Length; i++)
+            {
+                joined += array[i].ToString();
+
+                if (i < array.Length - 1)
+                {
+                    if (i < array.Length - 2)
+                        joined += ", ";
+                    else
+                        joined += " and ";
+                }
+            }
+
+            return joined;
+        }
+
         private static string systemSummary()
         {
             int CoreCount = Environment.ProcessorCount;
@@ -216,7 +251,7 @@ namespace Saftbot.NET
         public static void Main(string[] args)
         {
             Program program = new Program();
-
+           
             //Get absolute path to the bot (the directory the Saftbot.NET.dll file is in)
             string assemblyPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
@@ -230,7 +265,15 @@ namespace Saftbot.NET
                 databaseFolder = @"/db/";
 
             database = new Database(assemblyPath + databaseFolder);
-            program.Run().Wait();
+
+            try
+            {
+                program.Run().Wait();
+            }
+            catch(Exception e)
+            {
+                logError(e);
+            }
         }
 
         public async Task Run()
@@ -320,6 +363,57 @@ namespace Saftbot.NET
                 DataEntry entry = database.FetchEntry(guildid);
                 entry.EditUserSetting(userid, UserSettings.isAdmin, false);
                 entry.SaveChanges();
+            }
+        }
+        #endregion
+
+        #region generic userperms methods
+        /// <summary>
+        /// Perform a generic attempt to make a given user a given perm on a given server
+        /// </summary>
+        /// <param name="userID">The userID of the user</param>
+        /// <param name="guildID">The guildID of the server</param>
+        /// <param name="perm">The setting to edit</param>
+        /// <param name="newStatus">New status of that setting</param>
+        /// <param name="permdescription">A description of the permission</param>
+        /// <returns>A message to respond to user</returns>
+        private static string MakeUser(ulong userID, ulong guildID, UserSettings perm, bool newStatus, string permdescription)
+        {
+            bool currentSetting = database.FetchEntry(guildID).FetchUserSetting(userID, perm);
+            database.FetchEntry(guildID).EditUserSetting(userID, perm, newStatus);
+
+            if (newStatus)
+            {
+                if (currentSetting)
+                    return $"{mention(userID)} is already {permdescription}!";
+                else
+                    return $"{mention(userID)} is now {permdescription}!";
+            }
+            else
+            {
+                if (currentSetting)
+                    return $"{mention(userID)} is no longer a {permdescription}";
+                else
+                    return $"{mention(userID)} isn't a {permdescription}";
+            }
+        }
+
+        /// <summary>
+        /// Attempt to give a list of users a given permission
+        /// </summary>
+        /// <param name="allUsers">All users to be given permission</param>
+        /// <param name="guildID">The guild this is doen in</param>
+        /// <param name="perm">the permission in question</param>
+        /// <param name="newStatus">The new status of the setting</param>
+        /// <param name="permdescription">A description of the permission</param>
+        /// <param name="respondChannel">A channel into which responds are given</param>
+        private static void MakeUsers(IEnumerable<DiscordUser> allUsers, ulong guildID, UserSettings perm, bool newStatus, 
+                                      string permdescription, ITextChannel respondChannel)
+        {
+            foreach (DiscordUser user in allUsers)
+            {
+                string response = MakeUser(user.Id.Id, guildID, perm, newStatus, permdescription);
+                sendMessage(respondChannel, response);
             }
         }
         #endregion
@@ -488,28 +582,20 @@ namespace Saftbot.NET
 
                     //Lists all users with admin permissions on this server
                     case ("listadmins"):
-                        DataEntry guildEntry = database.FetchEntry(guildID);
                         List<string> adminMentions = new List<string>();
-
-                        foreach (var userEntry in guildEntry.FetchParsedUsersettings())
+                        
+                        foreach (var userEntry in database.FetchEntry(guildID).FetchParsedUsersettings())
                         {
                             if(userEntry.Value[(int)UserSettings.isAdmin])
-                            {
                                 adminMentions.Add($"{mention(userEntry.Key)}");
-                            }
+                            
                         }
 
                         if(adminMentions.Count == 0)
-                        {
                             sendMessage(textChannel, "There are no Admins on this server.");
-                        }
                         else
-                        {
-                            string fullAdminMessage = String.Join(", ", adminMentions.ToArray());
-                            
-                            sendMessage(textChannel, "Admins on this server are:\n" +
-                                                    $"{fullAdminMessage}");
-                        }
+                            sendMessage(textChannel, $"Admins on this server are:\n{specialAndJoin(adminMentions)}");
+                        
                     break;
                         
                     //Make the bot laugh
@@ -529,27 +615,7 @@ namespace Saftbot.NET
                         
                     //Quickly generate a link to search different websites
                     case ("search"):
-                        if(arguments.Length >= 1)
-                        {
-                            string[] searchService = parseSearchService("", guildID);
-                            string[] searchArgs = arguments;
-
-                            if (arguments[0].StartsWith("-"))
-                            {
-                                if(arguments[0].ToLower() == "-list")
-                                {
-                                    sendMessage(textChannel, "Available search services are:\n"+listSearchServices());
-                                    return;
-                                }
-
-                                searchService = parseSearchService(arguments[0].Substring(1), guildID);
-                                searchArgs = new string[arguments.Length - 1];
-
-                                Array.Copy(arguments, 1, searchArgs, 0, arguments.Length - 1);
-                            }
-
-                            sendMessage(textChannel, searchService[0] + String.Join(searchService[1], searchArgs));
-                        }
+                        sendMessage(textChannel, Search.DoSearchCommand(arguments, guildID));
                     break;
 
                     // Make the owner of this server a bot admin.
@@ -558,41 +624,79 @@ namespace Saftbot.NET
                         //grab guilds owner from cache
                         ulong ownerid = (shard.Cache.Guilds.Get(new Discore.Snowflake(guildID))).Value.OwnerId.Id;
 
-                        if (isAdmin(guildID, ownerid))
-                            sendMessage(textChannel, $"{mention(ownerid)} is already an admin!");
-                        else
+                        MakeUser(ownerid, guildID, UserSettings.isAdmin, true, "an admin");
+                    break;
+
+                    // Report the permissions of all mentioned users
+                    case ("whois"):
+                        foreach(DiscordUser mentionedUser in message.Mentions)
                         {
-                            addAdmin(guildID, ownerid);
-                            sendMessage(textChannel, $"{mention(ownerid)} is now an admin!");
+                            List<string> descriptions = new List<string>();
+
+                            if (isAdmin(guildID, mentionedUser.Id.Id))
+                                descriptions.Add("an admin");
+                            if (UserIsIgnored(mentionedUser.Id.Id, guildID))
+                                descriptions.Add("ignored");
+                            if (UserCanDJ(mentionedUser.Id.Id, guildID))
+                                descriptions.Add("a DJ");
+                            if (isDeveloper(mentionedUser.Id.Id))
+                                descriptions.Add("a dev");
+
+                            if (descriptions.Count > 0)
+                                sendMessage(textChannel, $"{mention(mentionedUser)} is {specialAndJoin(descriptions)}");
+                            else
+                                sendMessage(textChannel, $"{mention(mentionedUser)} is a nobody");
                         }
 
-                        break;
+                    break;
                     #endregion
 
                     #region Playback commands, may require permissions
                     // Check wether or not the sender has access to playback commands
                     case ("musicpermtest"):
-                        sendMessage(textChannel, (UserCanDJ(userID, guildID) ? "You're a DJ!" : "You can't DJ!"));
+                        sendMessage(textChannel, (UserCanDJ(userID, guildID) ? "You can DJ!" : "You can't DJ!"));
                     break;
 
+                    case ("play"):
+                        if (UserCanDJ(userID, guildID))
+                        {
+                            if (arguments.Length >= 1)
+                            {
+
+                            }
+                            else
+                                sendMessage(textChannel, "Requires additional arguments");
+                        }
+                        else
+                            noPermsMessage(textChannel);
+                        break;
                     #endregion
 
                     #region Requires Admin Perms
+
+                    case ("makedj"):
+                        if (isAdmin(guildID, userID))
+                        {
+                            MakeUsers(message.Mentions, guildID, UserSettings.isDJ, true, "a DJ", textChannel);
+                        }
+                        else
+                            noPermsMessage(textChannel);
+                    break;
+
+                    case ("undj"):
+                        if (isAdmin(guildID, userID))
+                        {
+                            MakeUsers(message.Mentions, guildID, UserSettings.isDJ, false, "a DJ", textChannel);
+                        }
+                        else
+                            noPermsMessage(textChannel);
+                    break;
 
                     //ignore a user (they can no longer execute commands)
                     case ("ignore"):
                         if (isAdmin(guildID, userID))
                         {
-                            DiscordUser[] allUsersToBeIgnored = message.Mentions.ToArray();
-                            foreach (DiscordUser userToBeIgnored in allUsersToBeIgnored)
-                            {
-                                if (UserIsIgnored(guildID, userToBeIgnored.Id.Id))
-                                    sendMessage(textChannel, $"{mention(userToBeIgnored)} ? Who is {mention(userToBeIgnored)}");
-                                else
-                                    sendMessage(textChannel, $"{mention(userToBeIgnored)} is now ignored!");
-
-                                database.FetchEntry(guildID).EditUserSetting(userToBeIgnored, UserSettings.isIgnored, true);
-                            }
+                            MakeUsers(message.Mentions, guildID, UserSettings.isIgnored, true, "ignored", textChannel);
                         }
                         else
                             noPermsMessage(textChannel);
@@ -602,36 +706,17 @@ namespace Saftbot.NET
                     case ("unignore"):
                         if (isAdmin(guildID, userID))
                         {
-                            DiscordUser[] allUsersToBeDeIgnored = message.Mentions.ToArray();
-                            foreach (DiscordUser userToBeDeIgnored in allUsersToBeDeIgnored)
-                            {
-                                if (! UserIsIgnored(guildID, userToBeDeIgnored.Id.Id))
-                                    sendMessage(textChannel, $"{mention(userToBeDeIgnored)} isn't ignored!");
-                                else
-                                    sendMessage(textChannel, $"I acknowledge the existence of {mention(userToBeDeIgnored)} !");
-
-                                database.FetchEntry(guildID).EditUserSetting(userToBeDeIgnored, UserSettings.isIgnored, false);
-                            }
+                            MakeUsers(message.Mentions, guildID, UserSettings.isDJ, false, "ignored", textChannel);
                         }
                         else
                             noPermsMessage(textChannel);
-                        break;
+                    break;
 
                     // give on or more users admin permissions
                     case ("addadmin"):
                         if (isAdmin(guildID, userID))
                         {
-                            DiscordUser[] allUsersToBeAdded = message.Mentions.ToArray();
-                            foreach (DiscordUser userToBeAdded in allUsersToBeAdded)
-                            {
-
-                                if (isAdmin(guildID, userToBeAdded.Id.Id))
-                                    sendMessage(textChannel, $"{mention(userToBeAdded)} is already an admin!");
-                                else
-                                    sendMessage(textChannel, $"{mention(userToBeAdded)} is now an admin!");
-
-                                addAdmin(guildID, userToBeAdded.Id.Id);
-                            }
+                            MakeUsers(message.Mentions, guildID, UserSettings.isAdmin, true, "an admin", textChannel);
                         }
                         else
                             noPermsMessage(textChannel);
@@ -641,16 +726,7 @@ namespace Saftbot.NET
                     case ("removeadmin"):
                         if (isAdmin(guildID, userID))
                         {
-                            DiscordUser[] allUsersToBeRemoved = message.Mentions.ToArray();
-                            foreach (DiscordUser userToBeRemoved in allUsersToBeRemoved)
-                            {
-                                if (isAdmin(guildID, userToBeRemoved.Id.Id))
-                                    sendMessage(textChannel, $"{mention(userToBeRemoved)} is no longer an admin!");
-                                else
-                                    sendMessage(textChannel, $"{mention(userToBeRemoved)} isn't an admin!");
-
-                                removeAdmin(guildID, userToBeRemoved.Id.Id);
-                            }
+                            MakeUsers(message.Mentions, guildID, UserSettings.isAdmin, false, "an admin", textChannel);
                         }
                         else
                             noPermsMessage(textChannel);
@@ -670,8 +746,9 @@ namespace Saftbot.NET
                                 else
                                 {
                                     Snowflake baseID = await textChannel.GetLastMessageId();
-                                    System.Collections.Generic.IReadOnlyList<DiscordMessage> messagesToDelete = await textChannel.GetMessages(baseID, deleteMessageCount + 1);
+                                    System.Collections.Generic.IReadOnlyList<DiscordMessage> messagesToDelete = await textChannel.GetMessages(baseID, deleteMessageCount);
                                     await textChannel.BulkDeleteMessages(messagesToDelete);
+                                    message.Delete();
                                     sendMessage(textChannel, $"{deleteMessageCount} Messages have been deleted!");
                                 }
                             }
@@ -696,14 +773,16 @@ namespace Saftbot.NET
 
                     #region Requires Developer Perms
 
-                    //Shut the bot down and make a niche reference at the same time
+                    //Shut the bot down and make a niche reference
                     case ("crash"):
                         if (isDeveloper(message.Author.Id.Id))
-                        {   //User has the required Permissions to shut the bot down
+                        {
+                            log($"{message.Author.Username} ({message.Author.Id.Id}) has shut the bot down.");
+                            /*
                             sendMessage(textChannel, "L");
                             Thread.Sleep(1000);
                             sendMessage(textChannel, "O");
-                            Thread.Sleep(1200);
+                            Thread.Sleep(10);*/
                             shard.Application.ShardManager.StopShardsAsync(CancellationToken.None);
                         }
                         else

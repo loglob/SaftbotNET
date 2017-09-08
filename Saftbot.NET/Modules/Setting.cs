@@ -3,7 +3,7 @@ using Saftbot.NET.DBSystem;
 
 namespace Saftbot.NET.Modules
 {
-    internal class Setting
+    internal static class Setting
     {
         private static setting[] availableSettings = new setting[] 
         {

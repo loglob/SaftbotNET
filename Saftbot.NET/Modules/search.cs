@@ -3,7 +3,7 @@ using Saftbot.NET.DBSystem;
 
 namespace Saftbot.NET.Modules
 {
-    public class Search
+    public static class Search
     {
         private static StaticSearchProvider[] staticSearchProviders = new StaticSearchProvider[]
         {

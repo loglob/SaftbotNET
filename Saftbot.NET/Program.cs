@@ -5,9 +5,6 @@ using Discore.WebSocket;
 using System.Threading;
 using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
-using System.Linq;
 using System.Collections.Generic;
 using Saftbot.NET.DBSystem;
 using Saftbot.NET.Modules;
@@ -35,55 +32,6 @@ namespace Saftbot.NET
         /// </summary>
         public const string saftbotVersionTag = "SaftBot™ Alpha v2.1.1 'It's modular™!'-Edition";
         
-        #region helper methods
-        private static string specialAndJoin(IEnumerable<string> list)
-        {   return specialAndJoin(list.ToArray());  }
-
-        private static string specialAndJoin(string[] array)
-        {
-            string joined = "";
-
-            for (int i = 0; i < array.Length; i++)
-            {
-                joined += array[i].ToString();
-
-                if (i < array.Length - 1)
-                {
-                    if (i < array.Length - 2)
-                        joined += ", ";
-                    else
-                        joined += " and ";
-                }
-            }
-
-            return joined;
-        }
-
-        private static string systemSummary()
-        {
-            int CoreCount = Environment.ProcessorCount;
-            string timezone = TimeZoneInfo.Local.DisplayName;
-            string UTCoffset = TimeZoneInfo.Local.BaseUtcOffset.TotalHours.ToString();
-            string machineName = Environment.MachineName;
-            string OSarch = RuntimeInformation.OSArchitecture.ToString();
-            string OSdesc = RuntimeInformation.OSDescription;
-            string cpuarch = RuntimeInformation.ProcessArchitecture.ToString();
-            string fwInfo = RuntimeInformation.FrameworkDescription;
-            string uptime = (DateTime.UtcNow - Process.GetCurrentProcess().StartTime.ToUniversalTime()).ToString();
-
-            return ($"I am running on {machineName}, specs:\nOS:{OSdesc}({OSarch})\nCPU:{CoreCount} " +
-                $"Core {cpuarch} CPU\nTimezone: {timezone}(UTC+{UTCoffset})\nFramework: {fwInfo}\nUptime: {uptime}\n" +
-                $"Saftbot-Versiontag™: {saftbotVersionTag}");
-        }
-        
-        private static string mention(DiscordUser user) { return mention(user.Id.Id); }
-        private static string mention(Snowflake userID) { return mention(userID.Id); }
-        /// <summary>
-        /// Generate the string that will show up as a mention (like @username) after being send
-        /// </summary>
-        private static string mention(ulong userID) {   return $"<@{userID}>";  }
-        #endregion
-
         #region initializing methods
         public static void Main(string[] args)
         {
@@ -172,16 +120,16 @@ namespace Saftbot.NET
             if (newStatus)
             {
                 if (currentSetting)
-                    return $"{mention(userID)} is already {permdescription}!";
+                    return $"{Utility.Mention(userID)} is already {permdescription}!";
                 else
-                    return $"{mention(userID)} is now {permdescription}!";
+                    return $"{Utility.Mention(userID)} is now {permdescription}!";
             }
             else
             {
                 if (currentSetting)
-                    return $"{mention(userID)} is no longer a {permdescription}";
+                    return $"{Utility.Mention(userID)} is no longer a {permdescription}";
                 else
-                    return $"{mention(userID)} isn't a {permdescription}";
+                    return $"{Utility.Mention(userID)} isn't a {permdescription}";
             }
         }
         
@@ -258,7 +206,7 @@ namespace Saftbot.NET
                     //Test if the bot is online and how fast it responds
                     case ("ping"):
                         TimeSpan timeSincePost = DateTime.Now.Subtract(message.Timestamp);
-                        sendMessage(textChannel, $"{mention(message.Author)} Pong! Took {timeSincePost.TotalMilliseconds} ms");
+                        sendMessage(textChannel, $"{Utility.Mention(message.Author)} Pong! Took {timeSincePost.TotalMilliseconds} ms");
                     break;
 
                     //Deletes and resends a given message
@@ -284,12 +232,12 @@ namespace Saftbot.NET
                     //Information about the system the bot is hosted on
                     //ALso gives saftbot-versiontag info
                     case ("status"):
-                        sendMessage(textChannel, systemSummary());
+                        sendMessage(textChannel, Utility.SystemSummary());
                     break;
 
                     //Tells the user their discord-userID
                     case ("myid"):
-                        sendMessage(textChannel, $"{mention(message.Author)}, your ID is {message.Author.Id.ToString()}");
+                        sendMessage(textChannel, $"{Utility.Mention(message.Author)}, your ID is {message.Author.Id.ToString()}");
                     break;
 
                     //Lists all users with admin permissions on this server
@@ -299,14 +247,14 @@ namespace Saftbot.NET
                         foreach (var userEntry in database.FetchEntry(guildID).FetchParsedUsersettings())
                         {
                             if(userEntry.Value[(int)UserSettings.isAdmin])
-                                adminMentions.Add($"{mention(userEntry.Key)}");
+                                adminMentions.Add($"{Utility.Mention(userEntry.Key)}");
                             
                         }
 
                         if(adminMentions.Count == 0)
                             sendMessage(textChannel, "There are no Admins on this server.");
                         else
-                            sendMessage(textChannel, $"Admins on this server are:\n{specialAndJoin(adminMentions)}");
+                            sendMessage(textChannel, $"Admins on this server are:\n{Utility.SpecialAndJoin(adminMentions)}");
                         
                     break;
                         
@@ -356,9 +304,9 @@ namespace Saftbot.NET
                                 descriptions.Add("a dev");
 
                             if (descriptions.Count > 0)
-                                sendMessage(textChannel, $"{mention(mentionedUser)} is {specialAndJoin(descriptions)}");
+                                sendMessage(textChannel, $"{Utility.Mention(mentionedUser)} is {Utility.SpecialAndJoin(descriptions)}");
                             else
-                                sendMessage(textChannel, $"{mention(mentionedUser)} is a nobody");
+                                sendMessage(textChannel, $"{Utility.Mention(mentionedUser)} is a nobody");
                         }
                     break;
 

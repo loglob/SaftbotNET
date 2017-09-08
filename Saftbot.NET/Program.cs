@@ -31,7 +31,7 @@ namespace Saftbot.NET
         /// A version tag appended to the !status message.
         /// Doesn't serve any real purpose
         /// </summary>
-        public const string saftbotVersionTag = "SaftBot™ Gamma v2.0.7 'Cleaning up program.cs'-Edition";
+        public const string saftbotVersionTag = "SaftBot™ Alpha v2.1.0 'Audio coming soon™'-Edition";
         
         #region loggingMethods
         /// <summary>
@@ -169,82 +169,7 @@ namespace Saftbot.NET
                 return null;
             }
         }
-
-        /// <summary>
-        /// when using !search, this method determines the search prefix used as well as the escape chars for space
-        /// </summary>
-        /// <param name="shorthand">arguments[0] minus the - at begining</param>
-        /// <returns></returns>
-        private static string[] parseSearchService(string shorthand, ulong guildID)
-        {
-            shorthand = shorthand.ToLower();
-            
-            //search 4chan/g/ and possibly a given board
-            if(shorthand.StartsWith("4c"))
-            {
-                if (shorthand.StartsWith("4c_") && shorthand.Length > 3)
-                    return new string[] { $"https://boards.4chan.org/{ shorthand.Substring(3) }/catalog#s=", "+" };
-                else
-                    return new string[] { "https://boards.4chan.org/g/catalog#s=", "+" };
-            }
-
-            //search reddit and possibly a given subreddit
-            if(shorthand.StartsWith("r"))
-            {
-                if (shorthand.StartsWith("r_") && shorthand.Length > 2)
-                    return new string[] { $"https://www.reddit.com/r/{ shorthand.Substring(2) }/search?restrict_sr=on&q=", "+" };
-                else
-                    return new string[] { "https://www.reddit.com/search?q=", "+" };
-            }
-
-            //search gomovies under possibly given domain
-            if(shorthand.StartsWith("go"))
-            {
-                if (shorthand.StartsWith("go_") && shorthand.Length > 3)
-                    return new string[] { $"https://gomovies.{ shorthand.Substring(3) }/search-query/", "+" };
-                else
-                    return new string[] { "https://gomovies.sc/search-query/", "+" };
-            }
-
-            switch (shorthand)
-            {
-                case "g":
-                    return new string[] { "https://google.com/search?q=", "+" };
-
-                case "ddg":
-                    return new string[] { "https://duckduckgo.com/?q=", "+" };
-
-                case "tpb":
-                    return new string[] { "https://thepiratebay.org/search/", "%20" };
-
-                case "yt":
-                    return new string[] { "https://www.youtube.com/results?search_query=", "+" };
-
-                case "st":
-                    return new string[] { "http://store.steampowered.com/search/?term=", "+" };
-
-                case "tw":
-                    return new string[] { "https://twitter.com/search?q=", "%20" };
-
-                case "nya":
-                    return new string[] { "https://nyaa.si/?q=", "+" };
-
-                default:
-                    if (database.FetchEntry(guildID).FetchSetting(ServerSettings.useGoogle))
-                        return new string[] { "https://google.com/search?q=", "+" };
-                    else
-                        return new string[] { "https://duckduckgo.com/?q=", "+" };
-            }
-        }
-
-        private static string listSearchServices()
-        {
-            return "\nG: Google             \nDDG: Duckduckgo           \nTPB: The Piratebay            " +
-                   "\nYT: Youtube           \n4C: 4chan                 \n4C_{x}: The /{x}/ board       " +
-                   "\nST: Steam Store       \nTW: Twitter               \nNYA: nyaa.si anime tracker    " +
-                   "\nR: Reddit             \nR_{x}: {x}-subreddit      \nGO: GoMovies streaming site   " +
-                   "\nGO_{x} GOMovies.{x}   ";
-        }
+        
         #endregion
 
         #region initializing methods
@@ -310,11 +235,11 @@ namespace Saftbot.NET
             try
             {
                 DiscordMessage sentmessage = await textChannel.SendMessage($"{message}");
-                log($"Succesfully send message: {message}");
+                log($"Succesfully send message: '{message}'");
             }
             catch (Exception e)
             {
-                logError(e, $"trying to send message: {message}");
+                logError(e, $"trying to send message: '{message}'");
             }
         }
 
@@ -443,64 +368,7 @@ namespace Saftbot.NET
         {
             return database.FetchEntry(guildID).FetchUserSetting(userID, UserSettings.isIgnored);
         }
-
-
-        /// <summary>
-        /// Performs all actions required to edit / read settings
-        /// </summary>
-        /// <param name="arguments">The arguments supplied to the settings command</param>
-        /// <returns>the response to the user</returns>
-        private static string doSettingsCommand(string[] arguments, ulong guildID)
-        {
-            string usage = "!settings [view/edit/list] {setting name / number} {new value}";
-
-            if (arguments.Length >= 1)
-            {
-                if (arguments[0].ToLower() == "view" || arguments[0].ToLower() == "edit")
-                {
-                    if (arguments.Length >= 2)
-                    {
-                        if (parseToSetting(arguments[1]).HasValue)
-                        {
-                            ServerSettings setting = parseToSetting(arguments[1]).Value;
-
-                            if(arguments[0].ToLower() == "view")
-                            {
-                                return database.FetchEntry(guildID).FetchSetting(setting).ToString();
-                            }
-                            else
-                            {
-                                if (arguments.Length >= 3)
-                                {
-                                    bool value;
-                                    if (Boolean.TryParse(arguments[2], out value))
-                                    {
-                                        database.FetchEntry(guildID).EditSetting(setting, value);
-                                        return "Setting edited";
-                                    }    
-                                    else
-                                        return "No parsable boolean given";
-                                    
-                                }
-                                else
-                                    return "Requires additional arguments.\nUsage: " + usage;
-                            }
-                        }
-                        else
-                            return "Unknown setting. Use '!settings list' for a list of settings";
-                    }
-                    else
-                        return $"Command {arguments[0]} required additional arguments";
-                }
-                else if (arguments[0].ToLower() == "list")
-                    return "Possible settings are:\n" + DescribeAllSettings();
-                else
-                    return $"Unknown command '{arguments[0]}'.\nUsage: "+ usage;
-            }
-            else
-                return "Insufficient arguments supplied.\nUsage: " + usage;
-        }
-
+        
         /// <summary>
         /// Called whenever a message is send
         /// </summary>
@@ -647,7 +515,11 @@ namespace Saftbot.NET
                             else
                                 sendMessage(textChannel, $"{mention(mentionedUser)} is a nobody");
                         }
+                    break;
 
+                    case ("source"):
+                    case ("repo"):
+                        sendMessage(textChannel, "My source can be found at https://github.com/LordGruem/SaftbotNET");
                     break;
                     #endregion
 
@@ -763,8 +635,8 @@ namespace Saftbot.NET
 
                     // Edit, view or list this servers settings
                     case ("settings"):
-                        if( isAdmin(guildID, userID))
-                            sendMessage(textChannel, doSettingsCommand(arguments, guildID));
+                        if( isAdmin(guildID, userID ))
+                            sendMessage(textChannel, Setting.doSettingsCommand(arguments, guildID));
                         else
                             noPermsMessage(textChannel);
                     break;

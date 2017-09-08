@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using Saftbot.NET.DBSystem;
 
-namespace Saftbot.NET
+namespace Saftbot.NET.Modules
 {
     public class Search
     {
@@ -26,14 +25,14 @@ namespace Saftbot.NET
             new DynamicSearchProvider("go", "https://gomovies.", "/search-query/", "GoMovies with the given CCTLD" )
         };
 
-        static ISearchProvider standard(ulong guildID)
+        private static ISearchProvider standard(ulong guildID)
         {
             bool google = Program.database.FetchEntry(guildID).FetchSetting(ServerSettings.useGoogle);
 
             return staticSearchProviders[google ? 1 : 0];
         }
 
-        static public string DescribeProviders()
+        public static string DescribeProviders()
         {
             string msg = "```";
 
@@ -91,7 +90,7 @@ namespace Saftbot.NET
         }
     }
 
-    public interface ISearchProvider
+    interface ISearchProvider
     {
         /// <summary>
         /// 
@@ -101,7 +100,7 @@ namespace Saftbot.NET
         string BuildSearchLink(string[] arguments);
     }
 
-    public struct StaticSearchProvider : ISearchProvider
+    struct StaticSearchProvider : ISearchProvider
     {
         public StaticSearchProvider(string shorthand, string prefix, string description, string spaceEscape = "+") : this()
         {
@@ -130,7 +129,7 @@ namespace Saftbot.NET
         }
     }
 
-    public struct DynamicSearchProvider : ISearchProvider
+    struct DynamicSearchProvider : ISearchProvider
     {
         public DynamicSearchProvider(string shorthand, string prefix, string postfix, string description, string spaceEscape = "+") : this()
         {

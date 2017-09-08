@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
+using Saftbot.NET.DBSystem;
 
 namespace Saftbot.NET
 {
@@ -31,7 +32,7 @@ namespace Saftbot.NET
         /// A version tag appended to the !status message.
         /// Doesn't serve any real purpose
         /// </summary>
-        public const string saftbotVersionTag = "SaftBot™ Alpha v2.1.0 'Audio coming soon™'-Edition";
+        public const string saftbotVersionTag = "SaftBot™ Alpha v2.1.0 'It's modular™!'-Edition";
         
         #region loggingMethods
         /// <summary>
@@ -144,32 +145,6 @@ namespace Saftbot.NET
         /// Generate the string that will show up as a mention (like @username) after being send
         /// </summary>
         private static string mention(ulong userID) {   return $"<@{userID}>";  }
-
-        private static string DescribeAllSettings()
-        {
-            return "plebscandj: Determines if users without admin permissions can use playback commands,\n" +
-                   "usegoogle: Determines if !search uses the evil botnet google";
-        }
-
-        private static ServerSettings? parseToSetting(string settingName)
-        {
-            switch(settingName.ToLower())
-            {
-                case "plebscandj":
-                    return ServerSettings.plebsCanDJ;
-
-                case "usegoogle":
-                    return ServerSettings.useGoogle;
-
-                default:
-                    byte settingNr;
-                    if (Byte.TryParse(settingName, out settingNr))
-                        if (settingNr < 16)
-                            return (ServerSettings)settingNr;
-                return null;
-            }
-        }
-        
         #endregion
 
         #region initializing methods
@@ -180,16 +155,21 @@ namespace Saftbot.NET
             //Get absolute path to the bot (the directory the Saftbot.NET.dll file is in)
             string assemblyPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
-            //check if / or \ is regquired to build path
-            bool isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-            string databaseFolder;
+            #region initialize database
+                //check if / or \ is regquired to build path
+                bool isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+                string databaseFolder;
 
-            if (isWindows)
-                databaseFolder = @"\db\";
-            else
-                databaseFolder = @"/db/";
+                if (isWindows)
+                    databaseFolder = @"\db\";
+                else
+                    databaseFolder = @"/db/";
 
-            database = new Database(assemblyPath + databaseFolder);
+                database = new Database(assemblyPath + databaseFolder);
+            #endregion
+
+            startLog();
+            log($"Created Log file at: {logFilePath}");
 
             try
             {
@@ -207,8 +187,6 @@ namespace Saftbot.NET
             DiscordBotUserToken token = new DiscordBotUserToken(System.IO.File.ReadAllText(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/discord_token.txt"));
 
             //Create a new log file for the current session.
-            startLog();
-            log($"Created Log file at: {logFilePath}");
             
             // Create a WebSocket application.
             DiscordWebSocketApplication app = new DiscordWebSocketApplication(token);
@@ -250,19 +228,6 @@ namespace Saftbot.NET
         }
         #endregion
 
-        private static void Gateway_OnGuildCreated(object sender, GuildEventArgs e)
-        {
-            //Make a new, empty serverSettings entry
-            if (!database.DoesEntryExist(e.Guild.Id.Id))
-            {
-                database.RegisterEntry(database.DefaultEntry(e.Guild.Id.Id));
-                database.SaveChanges();
-            }
-
-            //register the owner as admin of the server
-            addAdmin(e.Guild.Id.Id, e.Guild.OwnerId.Id);
-        }
-        
         #region Admin Methods
         private static bool isAdmin(ulong guildid, ulong userid)
         {
@@ -381,7 +346,6 @@ namespace Saftbot.NET
             if (message.Author.IsBot)
                 return;
 
-
             if (message.Content.StartsWith("!"))
             {
                 //Log the send command asynchronously to keep respond time low
@@ -391,21 +355,26 @@ namespace Saftbot.NET
                 // Grab the DM or guild text channel this message was posted in from cache.
                 ITextChannel textChannel = (ITextChannel)shard.Cache.Channels.Get(message.ChannelId);
 
+                // Ignore all commands not from servers
+                if (textChannel.ChannelType != DiscordChannelType.Guild)
+                    return;
+
                 //Visually represent that the bot is working on the command
                 textChannel.TriggerTypingIndicator();
 
-                //Split message into command and arguments
-                string[] splitmsg = message.Content.Split(' ');
-                string command = splitmsg[0].Substring(1).ToLower();
-                string[] arguments = new string[splitmsg.Length - 1];
+                #region Split message into command and arguments
+                    string[] splitmsg = message.Content.Split(' ');
+                    string command = splitmsg[0].Substring(1).ToLower();
+                    string[] arguments = new string[splitmsg.Length - 1];
+                    Array.Copy(splitmsg, 1, arguments, 0, splitmsg.Length - 1);
+                #endregion
 
-                Array.Copy(splitmsg, 1, arguments, 0, splitmsg.Length - 1);
-                
+                // Retrieve guild- and authorIDs
                 ulong guildID = ((DiscordGuildTextChannel)shard.Cache.Channels.Get(message.ChannelId)).GuildId.Id;
-                ulong userID = message.Author.Id.Id;
+                ulong authorID = message.Author.Id.Id;
                 
                 // Ignore messages made by ignored users
-                if (UserIsIgnored(userID, guildID))
+                if (UserIsIgnored(authorID, guildID))
                     return;
 
                 switch (command)
@@ -483,7 +452,7 @@ namespace Saftbot.NET
                         
                     //Quickly generate a link to search different websites
                     case ("search"):
-                        sendMessage(textChannel, Search.DoSearchCommand(arguments, guildID));
+                        sendMessage(textChannel, Modules.Search.DoSearchCommand(arguments, guildID));
                     break;
 
                     // Make the owner of this server a bot admin.
@@ -526,11 +495,11 @@ namespace Saftbot.NET
                     #region Playback commands, may require permissions
                     // Check wether or not the sender has access to playback commands
                     case ("musicpermtest"):
-                        sendMessage(textChannel, (UserCanDJ(userID, guildID) ? "You can DJ!" : "You can't DJ!"));
+                        sendMessage(textChannel, (UserCanDJ(authorID, guildID) ? "You can DJ!" : "You can't DJ!"));
                     break;
 
                     case ("play"):
-                        if (UserCanDJ(userID, guildID))
+                        if (UserCanDJ(authorID, guildID))
                         {
                             if (arguments.Length >= 1)
                             {
@@ -547,7 +516,7 @@ namespace Saftbot.NET
                     #region Requires Admin Perms
 
                     case ("makedj"):
-                        if (isAdmin(guildID, userID))
+                        if (isAdmin(guildID, authorID))
                         {
                             MakeUsers(message.Mentions, guildID, UserSettings.isDJ, true, "a DJ", textChannel);
                         }
@@ -556,7 +525,7 @@ namespace Saftbot.NET
                     break;
 
                     case ("undj"):
-                        if (isAdmin(guildID, userID))
+                        if (isAdmin(guildID, authorID))
                         {
                             MakeUsers(message.Mentions, guildID, UserSettings.isDJ, false, "a DJ", textChannel);
                         }
@@ -566,7 +535,7 @@ namespace Saftbot.NET
 
                     //ignore a user (they can no longer execute commands)
                     case ("ignore"):
-                        if (isAdmin(guildID, userID))
+                        if (isAdmin(guildID, authorID))
                         {
                             MakeUsers(message.Mentions, guildID, UserSettings.isIgnored, true, "ignored", textChannel);
                         }
@@ -576,7 +545,7 @@ namespace Saftbot.NET
 
                     //reacknowledge a user 
                     case ("unignore"):
-                        if (isAdmin(guildID, userID))
+                        if (isAdmin(guildID, authorID))
                         {
                             MakeUsers(message.Mentions, guildID, UserSettings.isDJ, false, "ignored", textChannel);
                         }
@@ -586,7 +555,7 @@ namespace Saftbot.NET
 
                     // give on or more users admin permissions
                     case ("addadmin"):
-                        if (isAdmin(guildID, userID))
+                        if (isAdmin(guildID, authorID))
                         {
                             MakeUsers(message.Mentions, guildID, UserSettings.isAdmin, true, "an admin", textChannel);
                         }
@@ -596,7 +565,7 @@ namespace Saftbot.NET
 
                     // take admin permissions from one or more users
                     case ("removeadmin"):
-                        if (isAdmin(guildID, userID))
+                        if (isAdmin(guildID, authorID))
                         {
                             MakeUsers(message.Mentions, guildID, UserSettings.isAdmin, false, "an admin", textChannel);
                         }
@@ -606,7 +575,7 @@ namespace Saftbot.NET
                         
                     // Bulk delete messages
                     case ("purge"):
-                        if (isAdmin(guildID, userID))
+                        if (isAdmin(guildID, authorID))
                         {
                             int deleteMessageCount;
                             if (Int32.TryParse(arguments[0], out deleteMessageCount))
@@ -635,8 +604,8 @@ namespace Saftbot.NET
 
                     // Edit, view or list this servers settings
                     case ("settings"):
-                        if( isAdmin(guildID, userID ))
-                            sendMessage(textChannel, Setting.doSettingsCommand(arguments, guildID));
+                        if( isAdmin(guildID, authorID ))
+                            sendMessage(textChannel, Modules.Setting.doSettingsCommand(arguments, guildID));
                         else
                             noPermsMessage(textChannel);
                     break;
@@ -664,6 +633,25 @@ namespace Saftbot.NET
                 }
                 
             }
+        }
+
+        /// <summary>
+        /// Called when a new server is added
+        /// Adds a new DB entry and adds the owner as admin
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private static void Gateway_OnGuildCreated(object sender, GuildEventArgs e)
+        {
+            //Make a new, empty serverSettings entry
+            if (!database.DoesEntryExist(e.Guild.Id.Id))
+            {
+                database.RegisterEntry(database.DefaultEntry(e.Guild.Id.Id));
+                database.SaveChanges();
+            }
+
+            //register the owner as admin of the server
+            addAdmin(e.Guild.Id.Id, e.Guild.OwnerId.Id);
         }
     }
 }

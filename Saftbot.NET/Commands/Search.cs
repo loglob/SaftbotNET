@@ -63,14 +63,14 @@ namespace Saftbot.NET.Commands
 
         private string List()
         {
-            string message = "```";
+            string message = "";
 
             foreach (var provider in Providers)
             {
-                message += $"{provider.ShortHand}: {provider.Description}\n";
+                message += $"__**{provider.ShortHand}**__: {provider.Description}\n";
             }
 
-            return message + "```";
+            return message;
         }
     }
 

@@ -49,14 +49,14 @@ namespace Saftbot.NET.Commands
 
         private string list()
         {
-            string message = "```";
+            string message = "";
 
             foreach (setting possibleSetting in allSettings)
             {
-                message += $"{possibleSetting.Name}: {possibleSetting.Description}\n";
+                message += $"__**{possibleSetting.Name}**__: {possibleSetting.Description}\n";
             }
 
-            return message + "```";
+            return message;
         }
 
         private string view(string settingName, ulong guildID)

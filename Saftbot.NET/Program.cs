@@ -43,7 +43,7 @@ namespace Saftbot.NET
         /// A version tag appended to the !status message.
         /// Doesn't serve any real purpose
         /// </summary>
-        public const string saftbotVersionTag = "SaftBot™ v2.1.5 'Rewriting things is fun'-Edition";
+        public const string saftbotVersionTag = "SaftBot™ v2.2 'Actually working on playback now'-Edition";
         
         #region initializing methods
         public static void Main(string[] args)

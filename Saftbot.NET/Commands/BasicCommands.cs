@@ -232,14 +232,14 @@ namespace Saftbot.NET.Commands
             }
             else
             {
-                string message = "```";
+                string message = "";
 
                 foreach (Command cmd in Program.AllCommands)
                 {
-                    message += $"!{cmd.Name}: {cmd.Description}\n";
+                    message += $"__**!{cmd.Name}**__: {cmd.Description}\n";
                 }
 
-                return message + "```";
+                return message;
             }
         }
     }

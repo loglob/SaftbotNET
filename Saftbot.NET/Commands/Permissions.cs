@@ -76,14 +76,14 @@ namespace Saftbot.NET.Commands
         #region modes
         private string list()
         {
-            string message = "```";
+            string message = "";
 
             foreach (permission perm in AllPermissions)
             {
-                message += $"{perm.Name}: {perm.Description}\n";
+                message += $"__**{perm.Name}**__: {perm.Description}\n";
             }
 
-            return message + "```";
+            return message;
         }
 
         private string give(IEnumerable<DiscordUser> users, permission perm, ulong guildID)

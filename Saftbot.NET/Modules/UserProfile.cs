@@ -13,6 +13,21 @@ namespace Saftbot.NET.Modules
         private ulong UserID;
         private ulong GuildID;
 
+        public int PermissionLevel
+        {
+            get
+            {
+                if (IsDev)
+                    return 3;
+                if (IsAdmin)
+                    return 2;
+                if (HasPlaybackPerms)
+                    return 1;
+                else
+                    return 0;
+            }
+        }
+
         public bool IsIgnored
         {
             get
@@ -61,7 +76,7 @@ namespace Saftbot.NET.Modules
         {
             get
             {
-                return IsAdmin || IsDJ;
+                return IsAdmin || IsDJ || Program.database.FetchEntry(GuildID).FetchSetting(ServerSettings.plebsCanDJ);
             }
         }
     }

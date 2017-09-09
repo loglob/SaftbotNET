@@ -26,11 +26,21 @@ namespace Saftbot.NET
         /// </summary>
         internal static Log log;
 
+        internal static Commands.Command[] AllCommands = new Commands.Command[]
+        {
+            new Commands.Ping(),        new Commands.Say(),         new Commands.EightBall(),       new Commands.Status(),
+            new Commands.MyID(),        new Commands.Laughter(),    new Commands.MakeOwnerAdmin(),  new Commands.WhoIs(),
+            new Commands.Repo(),        new Commands.Help(),
+            new Commands.Search(),
+            new Commands.Settings(),
+            new Commands.Crash()
+        };
+
         /// <summary>
         /// A version tag appended to the !status message.
         /// Doesn't serve any real purpose
         /// </summary>
-        public const string saftbotVersionTag = "SaftBot™ Alpha v2.1.1 'It's modular™!'-Edition";
+        public const string saftbotVersionTag = "SaftBot™ v2.1.5 'Rewriting things is fun'-Edition";
         
         #region initializing methods
         public static void Main(string[] args)
@@ -112,7 +122,7 @@ namespace Saftbot.NET
         /// <param name="newStatus">New status of that setting</param>
         /// <param name="permdescription">A description of the permission</param>
         /// <returns>A message to respond to user</returns>
-        private static string MakeUser(ulong userID, ulong guildID, UserSettings perm, bool newStatus, string permdescription)
+        internal static string MakeUser(ulong userID, ulong guildID, UserSettings perm, bool newStatus, string permdescription)
         {
             bool currentSetting = database.FetchEntry(guildID).FetchUserSetting(userID, perm);
             database.FetchEntry(guildID).EditUserSetting(userID, perm, newStatus);
@@ -142,7 +152,7 @@ namespace Saftbot.NET
         /// <param name="newStatus">The new status of the setting</param>
         /// <param name="permdescription">A description of the permission</param>
         /// <param name="respondChannel">A channel into which responds are given</param>
-        private static void MakeUsers(IEnumerable<DiscordUser> allUsers, ulong guildID, UserSettings perm, bool newStatus, 
+        internal static void MakeUsers(IEnumerable<DiscordUser> allUsers, ulong guildID, UserSettings perm, bool newStatus, 
                                       string permdescription, ITextChannel respondChannel)
         {
             foreach (DiscordUser user in allUsers)
@@ -200,255 +210,24 @@ namespace Saftbot.NET
                 if (authorProfile.IsIgnored)
                     return;
 
-                switch (command)
+                var cmdinfo = new Commands.CommandInformation()
                 {
-                    #region No required Perms
-                    //Test if the bot is online and how fast it responds
-                    case ("ping"):
-                        TimeSpan timeSincePost = DateTime.Now.Subtract(message.Timestamp);
-                        sendMessage(textChannel, $"{Utility.Mention(message.Author)} Pong! Took {timeSincePost.TotalMilliseconds} ms");
-                    break;
+                    AuthorID = authorID,
+                    GuildID = guildID,
+                    Arguments = arguments,
+                    Message = message,
+                    Shard = shard
+                };
 
-                    //Deletes and resends a given message
-                    case ("say"):
-                        message.Delete();
-                        sendMessage(textChannel, $"{String.Join(" ",arguments)}");
-                    break;
-
-                    //A 8ball roll adjusted to be fair
-                    case ("8ball"):
-                        string[] answers = {"It is certain", "It is decidedly so", "Without a doubt", "Yes, definitely",
-                                            "You may rely on it", "As I see it, yes", "Most likely", "Outlook good", "Yes",
-                                            "Signs point to yes", "Reply hazy try again", "Ask again later", "Better not tell you now",
-                                            "Cannot predict now", "Concentrate and ask again", "Don't count on it", "My reply is no",
-                                            "My sources say no", "Outlook not so good", "Very doubtful", "Nah m8", "That's retarded",
-                                            "Are you stupid?", "Literally kill yourself", "Negative"};
-                        Random random = new Random();
-                        string answer = answers[(random.Next(00, answers.Length))];
-                        
-                        sendMessage(textChannel, answer);
-                        break;
-
-                    //Information about the system the bot is hosted on
-                    //ALso gives saftbot-versiontag info
-                    case ("status"):
-                        sendMessage(textChannel, Utility.SystemSummary());
-                    break;
-
-                    //Tells the user their discord-userID
-                    case ("myid"):
-                        sendMessage(textChannel, $"{Utility.Mention(message.Author)}, your ID is {message.Author.Id.ToString()}");
-                    break;
-
-                    //Lists all users with admin permissions on this server
-                    case ("listadmins"):
-                        List<string> adminMentions = new List<string>();
-                        
-                        foreach (var userEntry in database.FetchEntry(guildID).FetchParsedUsersettings())
-                        {
-                            if(userEntry.Value[(int)UserSettings.isAdmin])
-                                adminMentions.Add($"{Utility.Mention(userEntry.Key)}");
-                            
-                        }
-
-                        if(adminMentions.Count == 0)
-                            sendMessage(textChannel, "There are no Admins on this server.");
-                        else
-                            sendMessage(textChannel, $"Admins on this server are:\n{Utility.SpecialAndJoin(adminMentions)}");
-                        
-                    break;
-                        
-                    //Make the bot laugh
-                    case ("laughter"):
-                        string vocals = "aeiou";
-                        string laughter = "";
-                        Random rand = new Random();
-
-                        for (int i = 0; i < rand.Next(5,10); i++)
-                        {
-                            laughter += "h";
-                            laughter += vocals[rand.Next(0, 4)];
-                        }
-
-                        sendMessage(textChannel, laughter);
-                    break;
-                        
-                    //Quickly generate a link to search different websites
-                    case ("search"):
-                        sendMessage(textChannel, Search.DoSearchCommand(arguments, guildID));
-                    break;
-
-                    // Make the owner of this server a bot admin.
-                    // Should be done automatically when the bot joins a server
-                    case ("makeowneradmin"):
-                        //grab guilds owner from cache
-                        ulong ownerid = (shard.Cache.Guilds.Get(new Discore.Snowflake(guildID))).Value.OwnerId.Id;
-
-                        MakeUser(ownerid, guildID, UserSettings.isAdmin, true, "an admin");
-                    break;
-
-                    // Report the permissions of all mentioned users
-                    case ("whois"):
-                        foreach(DiscordUser mentionedUser in message.Mentions)
-                        {
-                            List<string> descriptions = new List<string>();
-                            UserProfile mentionedUserProfile = new UserProfile(mentionedUser.Id.Id, guildID);
-
-                            if (mentionedUserProfile.IsAdmin)
-                                descriptions.Add("an admin");
-                            if (mentionedUserProfile.IsIgnored)
-                                descriptions.Add("ignored");
-                            if (mentionedUserProfile.IsDJ)
-                                descriptions.Add("a DJ");
-                            if (mentionedUserProfile.IsDev)
-                                descriptions.Add("a dev");
-
-                            if (descriptions.Count > 0)
-                                sendMessage(textChannel, $"{Utility.Mention(mentionedUser)} is {Utility.SpecialAndJoin(descriptions)}");
-                            else
-                                sendMessage(textChannel, $"{Utility.Mention(mentionedUser)} is a nobody");
-                        }
-                    break;
-
-                    case ("source"):
-                    case ("repo"):
-                        sendMessage(textChannel, "My source can be found at https://github.com/LordGruem/SaftbotNET");
-                    break;
-                    #endregion
-
-                    #region Playback commands, may require permissions
-                    // Check wether or not the sender has access to playback commands
-                    case ("musicpermtest"):
-                        sendMessage(textChannel, (authorProfile.HasPlaybackPerms ? "You can DJ!" : "You can't DJ!"));
-                    break;
-
-                    case ("play"):
-                        if (authorProfile.HasPlaybackPerms)
-                        {
-                            sendMessage(textChannel, "This command is not implemented yet, sorry :c");
-                        }
+                foreach (var cmd in AllCommands)
+                {
+                    if(command == cmd.Name.ToLower())
+                    {
+                        if(authorProfile.PermissionLevel >= cmd.PermsRequired)
+                            sendMessage(textChannel, cmd.RunCommand(cmdinfo));
                         else
                             noPermsMessage(textChannel);
-                        break;
-                    #endregion
-
-                    #region Requires Admin Perms
-
-                    case ("makedj"):
-                        if (authorProfile.IsAdmin)
-                        {
-                            MakeUsers(message.Mentions, guildID, UserSettings.isDJ, true, "a DJ", textChannel);
-                        }
-                        else
-                            noPermsMessage(textChannel);
-                    break;
-
-                    case ("undj"):
-                        if (authorProfile.IsAdmin)
-                        {
-                            MakeUsers(message.Mentions, guildID, UserSettings.isDJ, false, "a DJ", textChannel);
-                        }
-                        else
-                            noPermsMessage(textChannel);
-                    break;
-
-                    //ignore a user (they can no longer execute commands)
-                    case ("ignore"):
-                        if (authorProfile.IsAdmin)
-                        {
-                            MakeUsers(message.Mentions, guildID, UserSettings.isIgnored, true, "ignored", textChannel);
-                        }
-                        else
-                            noPermsMessage(textChannel);
-                        break;
-
-                    //reacknowledge a user 
-                    case ("unignore"):
-                        if (authorProfile.IsAdmin)
-                        {
-                            MakeUsers(message.Mentions, guildID, UserSettings.isDJ, false, "ignored", textChannel);
-                        }
-                        else
-                            noPermsMessage(textChannel);
-                    break;
-
-                    // give on or more users admin permissions
-                    case ("addadmin"):
-                        if (authorProfile.IsAdmin)
-                        {
-                            MakeUsers(message.Mentions, guildID, UserSettings.isAdmin, true, "an admin", textChannel);
-                        }
-                        else
-                            noPermsMessage(textChannel);
-                    break;
-
-                    // take admin permissions from one or more users
-                    case ("removeadmin"):
-                        if (authorProfile.IsAdmin)
-                        {
-                            MakeUsers(message.Mentions, guildID, UserSettings.isAdmin, false, "an admin", textChannel);
-                        }
-                        else
-                            noPermsMessage(textChannel);
-                    break;
-                        
-                    // Bulk delete messages
-                    case ("purge"):
-                        if (authorProfile.IsAdmin)
-                        {
-                            int deleteMessageCount;
-                            if (Int32.TryParse(arguments[0], out deleteMessageCount))
-                            {
-                                if (deleteMessageCount < 0)
-                                {   //No acceptable number was given
-                                    sendMessage(textChannel, "The given number was invalid");
-                                }
-                                else
-                                {
-                                    Snowflake baseID = await textChannel.GetLastMessageId();
-                                    System.Collections.Generic.IReadOnlyList<DiscordMessage> messagesToDelete = await textChannel.GetMessages(baseID, deleteMessageCount);
-                                    await textChannel.BulkDeleteMessages(messagesToDelete);
-                                    message.Delete();
-                                    sendMessage(textChannel, $"{deleteMessageCount} Messages have been deleted!");
-                                }
-                            }
-                            else
-                            {   //Couldn't Parse the given string
-                                sendMessage(textChannel, "The given argument wasn't an acceptable number");
-                            }
-                        }
-                        else
-                            noPermsMessage(textChannel);
-                    break;
-
-                    // Edit, view or list this servers settings
-                    case ("settings"):
-                        if (authorProfile.IsAdmin)
-                            sendMessage(textChannel, Setting.doSettingsCommand(arguments, guildID));
-                        else
-                            noPermsMessage(textChannel);
-                    break;
-
-                    #endregion
-
-                    #region Requires Developer Perms
-
-                    //Shut the bot down and make a niche reference
-                    case ("crash"):
-                        if (authorProfile.IsDev)
-                        {
-                            log.Enter($"{message.Author.Username} ({message.Author.Id.Id}) has shut the bot down.");
-                            /*
-                            sendMessage(textChannel, "L");
-                            Thread.Sleep(1000);
-                            sendMessage(textChannel, "O");
-                            Thread.Sleep(10);*/
-                            shard.Application.ShardManager.StopShardsAsync(CancellationToken.None);
-                        }
-                        else
-                            noPermsMessage(textChannel);
-                    break;
-                    #endregion
+                    }
                 }
                 
             }

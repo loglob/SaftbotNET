@@ -33,6 +33,7 @@ namespace Saftbot.NET
             new Commands.Repo(),        new Commands.Help(),
             new Commands.Search(),
             new Commands.Settings(),
+            new Commands.Permissions(),
             new Commands.Crash()
         };
 
@@ -112,56 +113,6 @@ namespace Saftbot.NET
         }
         #endregion
         
-        #region generic userperms methods
-        /// <summary>
-        /// Perform a generic attempt to make a given user a given perm on a given server
-        /// </summary>
-        /// <param name="userID">The userID of the user</param>
-        /// <param name="guildID">The guildID of the server</param>
-        /// <param name="perm">The setting to edit</param>
-        /// <param name="newStatus">New status of that setting</param>
-        /// <param name="permdescription">A description of the permission</param>
-        /// <returns>A message to respond to user</returns>
-        internal static string MakeUser(ulong userID, ulong guildID, UserSettings perm, bool newStatus, string permdescription)
-        {
-            bool currentSetting = database.FetchEntry(guildID).FetchUserSetting(userID, perm);
-            database.FetchEntry(guildID).EditUserSetting(userID, perm, newStatus);
-
-            if (newStatus)
-            {
-                if (currentSetting)
-                    return $"{Utility.Mention(userID)} is already {permdescription}!";
-                else
-                    return $"{Utility.Mention(userID)} is now {permdescription}!";
-            }
-            else
-            {
-                if (currentSetting)
-                    return $"{Utility.Mention(userID)} is no longer a {permdescription}";
-                else
-                    return $"{Utility.Mention(userID)} isn't a {permdescription}";
-            }
-        }
-        
-        /// <summary>
-        /// Attempt to give a list of users a given permission
-        /// </summary>
-        /// <param name="allUsers">All users to be given permission</param>
-        /// <param name="guildID">The guild this is doen in</param>
-        /// <param name="perm">the permission in question</param>
-        /// <param name="newStatus">The new status of the setting</param>
-        /// <param name="permdescription">A description of the permission</param>
-        /// <param name="respondChannel">A channel into which responds are given</param>
-        internal static void MakeUsers(IEnumerable<DiscordUser> allUsers, ulong guildID, UserSettings perm, bool newStatus, 
-                                      string permdescription, ITextChannel respondChannel)
-        {
-            foreach (DiscordUser user in allUsers)
-            {
-                string response = MakeUser(user.Id.Id, guildID, perm, newStatus, permdescription);
-                sendMessage(respondChannel, response);
-            }
-        }
-        #endregion
         
         
         /// <summary>
@@ -190,7 +141,8 @@ namespace Saftbot.NET
                     return;
 
                 //Visually represent that the bot is working on the command
-                textChannel.TriggerTypingIndicator();
+                // (waits for execution because the bot may respond too fast causing the typing indicator to stay active
+                await textChannel.TriggerTypingIndicator();
 
                 #region Split message into command and arguments
                     string[] splitmsg = message.Content.Split(' ');

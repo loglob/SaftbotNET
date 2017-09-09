@@ -136,9 +136,21 @@ namespace Saftbot.NET.Commands
         public override string RunCommand(CommandInformation cmdinfo)
         {
             //grab guilds owner from cache
-            ulong ownerid = (cmdinfo.Shard.Cache.Guilds.Get(new Discore.Snowflake(cmdinfo.GuildID))).Value.OwnerId.Id;
+            DiscordGuild guild = (cmdinfo.Shard.Cache.Guilds.Get(new Discore.Snowflake(cmdinfo.GuildID))).Value;
+            ulong ownerID = guild.OwnerId.Id;
+            ulong guildID = guild.Id.Id;
 
-            return Program.MakeUser(ownerid, cmdinfo.GuildID, UserSettings.isAdmin, true, "an admin");
+            UserProfile owner = new UserProfile(ownerID, guildID);
+
+            if(owner.IsAdmin)
+            {
+                return $"{owner.GetMention()} is already an Admin!";
+            }
+            else
+            {
+                owner.IsAdmin = true;
+                return $"{owner.GetMention()} is now an Admin!";
+            }
         }
     }
 

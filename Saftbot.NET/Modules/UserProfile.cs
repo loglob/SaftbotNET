@@ -28,6 +28,16 @@ namespace Saftbot.NET.Modules
             }
         }
 
+        public void Set(UserSettings setting, bool newValue)
+        {
+            Program.database.FetchEntry(GuildID).EditUserSetting(UserID, setting, newValue);
+        }
+
+        public bool Is(UserSettings setting)
+        {
+            return Program.database.FetchEntry(GuildID).FetchUserSetting(UserID, setting);
+        }
+
         public bool IsIgnored
         {
             get
@@ -78,6 +88,11 @@ namespace Saftbot.NET.Modules
             {
                 return IsAdmin || IsDJ || Program.database.FetchEntry(GuildID).FetchSetting(ServerSettings.plebsCanDJ);
             }
+        }
+
+        public string GetMention()
+        {
+            return Utility.Mention(UserID);
         }
     }
 }

@@ -37,6 +37,8 @@ namespace Saftbot.NET
             new Commands.Crash()
         };
 
+        public const string NoPermsMessage = "You do not have the required permissions to run this command";
+
         /// <summary>
         /// A version tag appended to the !status message.
         /// Doesn't serve any real purpose
@@ -91,10 +93,12 @@ namespace Saftbot.NET
                 await Task.Delay(1000);
         }
         #endregion
-
-        #region message sending
+        
         private static async void sendMessage(ITextChannel textChannel, string message)
         {
+            if (message == "")
+                return;
+
             try
             {
                 DiscordMessage sentmessage = await textChannel.SendMessage($"{message}");
@@ -105,31 +109,22 @@ namespace Saftbot.NET
                 log.Enter(e, $"trying to send message: '{message}'");
             }
         }
-
-        //Generic no permisisons message
-        private static void noPermsMessage(ITextChannel textChannel)
-        {
-            sendMessage(textChannel, "You do not have the required permissions to run this command");
-        }
-        #endregion
-        
-        
         
         /// <summary>
         /// Called whenever a message is send
         /// </summary>
-        private static async void Gateway_OnMessageCreated(object sender, MessageEventArgs e)
+        private static void Gateway_OnMessageCreated(object sender, MessageEventArgs e)
         {
             Shard shard = e.Shard;
             DiscordMessage message = e.Message;
 
-            // Ignore messages created by this bot or any other bots
-            if (message.Author.IsBot)
-                return;
-
             if (message.Content.StartsWith("!"))
             {
-                //Log the send command asynchronously to keep respond time low
+                // Ignore messages created by this bot or any other bots
+                if (message.Author.IsBot)
+                    return;
+
+                // Log the send command asynchronously to keep respond time low
                 Thread loggingThread = new Thread(() => log.Enter($"{message.Author.Username} sent command: {message.Content}"));
                 loggingThread.Start();
 
@@ -140,17 +135,16 @@ namespace Saftbot.NET
                 if (textChannel.ChannelType != DiscordChannelType.Guild)
                     return;
 
-                //Visually represent that the bot is working on the command
-                // (waits for execution because the bot may respond too fast causing the typing indicator to stay active
-                await textChannel.TriggerTypingIndicator();
-
-                #region Split message into command and arguments
-                    string[] splitmsg = message.Content.Split(' ');
-                    string command = splitmsg[0].Substring(1).ToLower();
-                    string[] arguments = new string[splitmsg.Length - 1];
-                    Array.Copy(splitmsg, 1, arguments, 0, splitmsg.Length - 1);
-                #endregion
-
+                // Visually represent that the bot is working on the command
+                // Done asychronically so it will not slow down respond
+                textChannel.TriggerTypingIndicator();
+                
+                // Split message into command and arguments
+                string[] splitmsg = message.Content.Split(' ');
+                string command = splitmsg[0].Substring(1).ToLower();
+                string[] arguments = new string[splitmsg.Length - 1];
+                Array.Copy(splitmsg, 1, arguments, 0, splitmsg.Length - 1);
+                
                 // Retrieve guild- and authorIDs
                 ulong guildID = ((DiscordGuildTextChannel)shard.Cache.Channels.Get(message.ChannelId)).GuildId.Id;
                 ulong authorID = message.Author.Id.Id;
@@ -162,7 +156,8 @@ namespace Saftbot.NET
                 if (authorProfile.IsIgnored)
                     return;
 
-                var cmdinfo = new Commands.CommandInformation()
+                //Build a CommandInformation struct used to call commands
+                Commands.CommandInformation cmdinfo = new Commands.CommandInformation()
                 {
                     AuthorID = authorID,
                     GuildID = guildID,
@@ -175,10 +170,14 @@ namespace Saftbot.NET
                 {
                     if(command == cmd.Name.ToLower())
                     {
-                        if(authorProfile.PermissionLevel >= cmd.PermsRequired)
-                            sendMessage(textChannel, cmd.RunCommand(cmdinfo));
+                        string response;
+
+                        if (authorProfile.PermissionLevel >= cmd.PermsRequired)
+                            response = cmd.RunCommand(cmdinfo);
                         else
-                            noPermsMessage(textChannel);
+                            response = NoPermsMessage;
+
+                        sendMessage(textChannel, response);
                     }
                 }
                 

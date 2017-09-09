@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 
 namespace Saftbot.NET.Commands
 {
@@ -19,7 +16,11 @@ namespace Saftbot.NET.Commands
         {
             Program.log.Enter($"{cmdinfo.Message.Author.Username} ({cmdinfo.Message.Author.Id.Id}) has shut the bot down.");
             cmdinfo.Shard.Application.ShardManager.StopShardsAsync(CancellationToken.None);
-            return "Shutting down...";
+
+            if (Program.database.FetchEntry(cmdinfo.GuildID).FetchSetting(DBSystem.ServerSettings.coolReference))
+                return "L\nO";
+            else
+                return "Shutting down...";
         }
     }
 }

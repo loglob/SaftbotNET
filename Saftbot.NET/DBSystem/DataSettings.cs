@@ -6,7 +6,8 @@
     public enum ServerSettings
     {
         plebsCanDJ,
-        useGoogle
+        useGoogle,
+        coolReference
     }
 
     /// <summary>

@@ -8,7 +8,8 @@ namespace Saftbot.NET.Commands
         private setting[] allSettings = new setting[]
         {
             new setting("UseGoogle",    "Determines if !Search uses the evil botnet Google as default",     ServerSettings.useGoogle),
-            new setting("PlebsCanDJ",   "Determines if users without any perms are allowed to DJ",          ServerSettings.plebsCanDJ)
+            new setting("PlebsCanDJ",   "Determines if users without any perms are allowed to DJ",          ServerSettings.plebsCanDJ),
+            new setting("CoolReference","Determines if the bot does the cool 'LO' reference when shut down",ServerSettings.coolReference)
         };
 
         public override void InitializeVariables()

@@ -15,9 +15,9 @@ namespace Saftbot.NET.Commands
             Usage = "";
         }
 
-        public override string RunCommand(CommandInformation cmdinfo)
+        public override void RunCommand(CommandInformation cmdinfo)
         {
-            return new Modules.UserProfile(cmdinfo.AuthorID, cmdinfo.GuildID).HasPlaybackPerms.ToString();
+            cmdinfo.Messaging.Send(new UserProfile(cmdinfo.AuthorID, cmdinfo.GuildID).HasPlaybackPerms.ToString());
         }
     }
     

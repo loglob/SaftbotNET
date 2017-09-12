@@ -20,7 +20,12 @@ namespace Saftbot.NET.Commands
             Usage = "<list/set/view> [<setting name>] [<new value>]";
         }
 
-        public override string RunCommand(CommandInformation cmdinfo)
+        public override void RunCommand(CommandInformation cmdinfo)
+        {
+            cmdinfo.Messaging.Send(InternalRunCommand(cmdinfo));
+        }
+
+        private string InternalRunCommand(CommandInformation cmdinfo)
         {
             if (cmdinfo.Arguments.Length >= 1)
             {

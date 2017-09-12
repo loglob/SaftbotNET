@@ -12,16 +12,20 @@ namespace Saftbot.NET.Commands
             Usage = "";
         }
 
-        public override string RunCommand(CommandInformation cmdinfo)
+        public override void RunCommand(CommandInformation cmdinfo)
         {
             Program.log.Enter($"{cmdinfo.Message.Author.Username} ({cmdinfo.Message.Author.Id.Id}) has shut the bot down.");
-            //cmdinfo.Shard.Application.ShardManager.StopShardsAsync(CancellationToken.None);
-            cmdinfo.Shard.StopAsync();
 
             if (Program.database.FetchEntry(cmdinfo.GuildID).FetchSetting(DBSystem.ServerSettings.coolReference))
-                return "L\nO";
+            {
+                cmdinfo.Messaging.Send("L");
+                Thread.Sleep(1500);
+                cmdinfo.Messaging.Send("O");
+            }
             else
-                return "Shutting down...";
+                cmdinfo.Messaging.Send("Shutting down...");
+
+            cmdinfo.Shard.StopAsync().Wait();
         }
     }
 }

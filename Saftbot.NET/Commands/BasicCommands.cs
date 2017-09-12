@@ -16,10 +16,10 @@ namespace Saftbot.NET.Commands
             Usage = "";
         }
 
-        public override string RunCommand(CommandInformation cmdinfo)
+        public override void RunCommand(CommandInformation cmdinfo)
         {
             TimeSpan timeSincePost = DateTime.Now.Subtract(cmdinfo.Message.Timestamp);
-            return $"{cmdinfo.MentionAuthor} Pong! Took {timeSincePost.TotalMilliseconds} ms";
+            cmdinfo.Messaging.Send($"{cmdinfo.MentionAuthor} Pong! Took {timeSincePost.TotalMilliseconds} ms");
         }
     }
 
@@ -33,10 +33,10 @@ namespace Saftbot.NET.Commands
             Usage = "<message>";
         }
 
-        public override string RunCommand(CommandInformation cmdinfo)
+        public override void RunCommand(CommandInformation cmdinfo)
         {
             cmdinfo.Message.Delete();
-            return $"{String.Join(" ", cmdinfo.Arguments)}";
+            cmdinfo.Messaging.Send($"{String.Join(" ", cmdinfo.Arguments)}");
         }
     }
 
@@ -50,7 +50,7 @@ namespace Saftbot.NET.Commands
             Usage = "";
         }
 
-        public override string RunCommand(CommandInformation cmdinfo)
+        public override void RunCommand(CommandInformation cmdinfo)
         {
             string[] answers = {"It is certain", "It is decidedly so", "Without a doubt", "Yes, definitely",
                                             "You may rely on it", "As I see it, yes", "Most likely", "Outlook good", "Yes",
@@ -60,7 +60,7 @@ namespace Saftbot.NET.Commands
                                             "Are you stupid?", "Literally kill yourself", "Negative"};
             Random random = new Random();
 
-            return answers[(random.Next(00, answers.Length))];
+            cmdinfo.Messaging.Send(answers[(random.Next(00, answers.Length))]);
         }
     }
 
@@ -74,9 +74,9 @@ namespace Saftbot.NET.Commands
             Usage = "";
         }
 
-        public override string RunCommand(CommandInformation cmdinfo)
+        public override void RunCommand(CommandInformation cmdinfo)
         {
-            return Utility.SystemSummary();
+            cmdinfo.Messaging.Send(Utility.SystemSummary());
         }
     }
 
@@ -90,9 +90,9 @@ namespace Saftbot.NET.Commands
             Usage = "";
         }
 
-        public override string RunCommand(CommandInformation cmdinfo)
+        public override void RunCommand(CommandInformation cmdinfo)
         {
-            return $"{cmdinfo.MentionAuthor} , your ID is {cmdinfo.AuthorID}";
+            cmdinfo.Messaging.Send($"{cmdinfo.MentionAuthor} , your ID is {cmdinfo.AuthorID}");
         }
     }
 
@@ -106,7 +106,7 @@ namespace Saftbot.NET.Commands
             Usage = "";
         }
 
-        public override string RunCommand(CommandInformation cmdinfo)
+        public override void RunCommand(CommandInformation cmdinfo)
         {
             string vocals = "aeiou";
             string messsage = "";
@@ -119,7 +119,7 @@ namespace Saftbot.NET.Commands
                 messsage += vocals[rng.Next(0, vocals.Length)];
             }
 
-            return messsage;
+            cmdinfo.Messaging.Send(messsage);
         }
     }
 
@@ -133,7 +133,7 @@ namespace Saftbot.NET.Commands
             Usage = "";
         }
 
-        public override string RunCommand(CommandInformation cmdinfo)
+        public override void RunCommand(CommandInformation cmdinfo)
         {
             //grab guilds owner from cache
             DiscordGuild guild = (cmdinfo.Shard.Cache.GetGuild(new Discore.Snowflake(cmdinfo.GuildID)));
@@ -144,12 +144,12 @@ namespace Saftbot.NET.Commands
 
             if(owner.IsAdmin)
             {
-                return $"{owner.GetMention()} is already an Admin!";
+                cmdinfo.Messaging.Send($"{owner.GetMention()} is already an Admin!");
             }
             else
             {
                 owner.IsAdmin = true;
-                return $"{owner.GetMention()} is now an Admin!";
+                cmdinfo.Messaging.Send($"{owner.GetMention()} is now an Admin!");
             }
         }
     }
@@ -164,7 +164,7 @@ namespace Saftbot.NET.Commands
             Usage = "<user mention(s)>";
         }
 
-        public override string RunCommand(CommandInformation cmdinfo)
+        public override void RunCommand(CommandInformation cmdinfo)
         {
             string message = "";
 
@@ -188,7 +188,7 @@ namespace Saftbot.NET.Commands
                     message += $"{Utility.Mention(mentionedUser)} is a nobody\n";
             }
 
-            return message;
+            cmdinfo.Messaging.Send(message);
         }
     }
 
@@ -202,9 +202,9 @@ namespace Saftbot.NET.Commands
             Usage = "";
         }
 
-        public override string RunCommand(CommandInformation cmdinfo)
+        public override void RunCommand(CommandInformation cmdinfo)
         {
-            return "My source can be found at https://github.com/LordGruem/SaftbotNET";
+            cmdinfo.Messaging.Send("My source can be found at https://github.com/LordGruem/SaftbotNET");
         }
     }
 
@@ -218,17 +218,17 @@ namespace Saftbot.NET.Commands
             Usage = "[<command>]";
         }
 
-        public override string RunCommand(CommandInformation cmdinfo)
+        public override void RunCommand(CommandInformation cmdinfo)
         {
             if(cmdinfo.Arguments.Length > 0)
             {
                 foreach (Command cmd in Program.AllCommands)
                 {
                     if (cmd.Name.ToLower() == cmdinfo.Arguments[0].ToLower())
-                        return $"Usage: !{cmd.Name} {cmd.Usage}";
+                        cmdinfo.Messaging.Send($"Usage: !{cmd.Name} {cmd.Usage}");
                 }
 
-                return "Unknown command";
+                cmdinfo.Messaging.Send("Unknown command");
             }
             else
             {
@@ -239,7 +239,7 @@ namespace Saftbot.NET.Commands
                     message += $"__**!{cmd.Name}**__: {cmd.Description}\n";
                 }
 
-                return message;
+                cmdinfo.Messaging.Send(message);
             }
         }
     }

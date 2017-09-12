@@ -27,8 +27,13 @@ namespace Saftbot.NET.Commands
             PermsRequired = 0;
             Usage = "[<provider>] <query>";
         }
+        
+        public override void RunCommand(CommandInformation cmdinfo)
+        {
+            cmdinfo.Messaging.Send(InternalRunCommand(cmdinfo));
+        }
 
-        public override string RunCommand(CommandInformation cmdinfo)
+        private string InternalRunCommand(CommandInformation cmdinfo)
         {
             if(cmdinfo.Arguments.Length > 0)
             {

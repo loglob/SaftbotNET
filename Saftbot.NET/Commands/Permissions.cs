@@ -21,7 +21,12 @@ namespace Saftbot.NET.Commands
             Usage = "<list/give/take/view> [<Permission name>] [<user mention(s)>]";
         }
 
-        public override string RunCommand(CommandInformation cmdinfo)
+        public override void RunCommand(CommandInformation cmdinfo)
+        {
+            cmdinfo.Messaging.Send(InternalRunCommand(cmdinfo));
+        }
+
+        private string InternalRunCommand(CommandInformation cmdinfo)
         {
             if (cmdinfo.Arguments.Length >= 1)
             {

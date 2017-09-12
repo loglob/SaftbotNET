@@ -24,7 +24,7 @@ namespace Saftbot.NET.Commands
 
         public abstract void InitializeVariables();
 
-        public abstract string RunCommand(CommandInformation cmdinfo);
+        public abstract void RunCommand(CommandInformation cmdinfo);
     }
 
     public struct CommandInformation
@@ -34,6 +34,7 @@ namespace Saftbot.NET.Commands
         public string[] Arguments;
         public DiscordMessage Message;
         public Shard Shard;
+        public Modules.Messaging Messaging;
 
         public string MentionAuthor
         {

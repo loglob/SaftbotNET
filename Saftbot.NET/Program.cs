@@ -39,8 +39,6 @@ namespace Saftbot.NET
 
         internal static DiscordHttpClient httpClient;
 
-        public const string NoPermsMessage = "You do not have the required permissions to run this command";
-
         /// <summary>
         /// A version tag appended to the !status message.
         /// Doesn't serve any real purpose
@@ -74,48 +72,29 @@ namespace Saftbot.NET
         public async Task Run()
         {
             // Create authenticator using a bot user token.
-            //DiscordBotUserToken token = new DiscordBotUserToken(File.ReadAllText(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/discord_token.txt"));
             string token = File.ReadAllText(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/discord_token.txt");
 
             httpClient = new DiscordHttpClient(token);
 
             // Create and start a single shard.
-            using (Shard shard = new Shard(token, 0, 1))
-            {
-                // Subscribe to the message creation event.
-                shard.Gateway.OnMessageCreated += Gateway_OnMessageCreated;
-                shard.Gateway.OnGuildCreated += Gateway_OnGuildCreated;
+            Shard shard = new Shard(token, 0, 1);
+            
+            // Subscribe to the message creation event.
+            shard.Gateway.OnMessageCreated += Gateway_OnMessageCreated;
+            shard.Gateway.OnGuildCreated += Gateway_OnGuildCreated;
 
-                await shard.StartAsync(CancellationToken.None);
-                log.Enter("Bot connected!");
+            await shard.StartAsync(CancellationToken.None);
+            log.Enter("Bot connected!");
 
-                // Wait for the shard to end before closing the program.
-                await shard.WaitUntilStoppedAsync();
-            }
+            // Wait for the shard to end before closing the program.
+            await shard.WaitUntilStoppedAsync();
         }
         #endregion
-        
-        private static async void sendMessage(ITextChannel textChannel, string message)
-        {
-            if (message == "")
-                return;
-
-            try
-            {
-                //DiscordMessage sentmessage = await textChannel.SendMessage($"{message}");
-                await textChannel.CreateMessage(message);
-                log.Enter($"Succesfully send message: '{message}'");
-            }
-            catch (Exception e)
-            {
-                log.Enter(e, $"trying to send message: '{message}'");
-            }
-        }
         
         /// <summary>
         /// Called whenever a message is send
         /// </summary>
-        private static void Gateway_OnMessageCreated(object sender, MessageEventArgs e)
+        private static async void Gateway_OnMessageCreated(object sender, MessageEventArgs e)
         {
             Shard shard = e.Shard;
             DiscordMessage message = e.Message;
@@ -139,7 +118,7 @@ namespace Saftbot.NET
 
                 // Visually represent that the bot is working on the command
                 // Done asychronically so it will not slow down respond
-                textChannel.TriggerTypingIndicator();
+                await textChannel.TriggerTypingIndicator();
                 
                 // Split message into command and arguments
                 string[] splitmsg = message.Content.Split(' ');
@@ -165,21 +144,15 @@ namespace Saftbot.NET
                     GuildID = guildID,
                     Arguments = arguments,
                     Message = message,
-                    Shard = shard
+                    Shard = shard,
+                    Messaging = new Messaging(textChannel)
                 };
 
                 foreach (var cmd in AllCommands)
                 {
                     if(command == cmd.Name.ToLower())
                     {
-                        string response;
-
-                        if (authorProfile.PermissionLevel >= cmd.PermsRequired)
-                            response = cmd.RunCommand(cmdinfo);
-                        else
-                            response = NoPermsMessage;
-
-                        sendMessage(textChannel, response);
+                        cmd.RunCommand(cmdinfo);
                     }
                 }
                 

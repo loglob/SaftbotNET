@@ -5,9 +5,9 @@ using Discore.WebSocket;
 using System.Threading;
 using System.IO;
 using System.Reflection;
-using System.Collections.Generic;
 using Saftbot.NET.DBSystem;
 using Saftbot.NET.Modules;
+using Discore.Http;
 
 namespace Saftbot.NET
 {
@@ -37,13 +37,15 @@ namespace Saftbot.NET
             new Commands.Crash()
         };
 
+        internal static DiscordHttpClient httpClient;
+
         public const string NoPermsMessage = "You do not have the required permissions to run this command";
 
         /// <summary>
         /// A version tag appended to the !status message.
         /// Doesn't serve any real purpose
         /// </summary>
-        public const string saftbotVersionTag = "SaftBot™ v2.2 'Actually working on playback now'-Edition";
+        public const string saftbotVersionTag = "SaftBot™ v3.0 'Manual version incrementing is hard'-Edition";
         
         #region initializing methods
         public static void Main(string[] args)
@@ -55,6 +57,7 @@ namespace Saftbot.NET
 
             //Initialize new Database
             database = new Database(assemblyPath + Path.DirectorySeparatorChar + "db" + Path.DirectorySeparatorChar);
+
             //Initialize new Log
             log = new Log();
 
@@ -71,26 +74,24 @@ namespace Saftbot.NET
         public async Task Run()
         {
             // Create authenticator using a bot user token.
-            DiscordBotUserToken token = new DiscordBotUserToken(System.IO.File.ReadAllText(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/discord_token.txt"));
+            //DiscordBotUserToken token = new DiscordBotUserToken(File.ReadAllText(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/discord_token.txt"));
+            string token = File.ReadAllText(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/discord_token.txt");
 
-            //Create a new log file for the current session.
-            
-            // Create a WebSocket application.
-            DiscordWebSocketApplication app = new DiscordWebSocketApplication(token);
+            httpClient = new DiscordHttpClient(token);
 
             // Create and start a single shard.
-            Shard shard = app.ShardManager.CreateSingleShard();
-            await shard.StartAsync(CancellationToken.None);
+            using (Shard shard = new Shard(token, 0, 1))
+            {
+                // Subscribe to the message creation event.
+                shard.Gateway.OnMessageCreated += Gateway_OnMessageCreated;
+                shard.Gateway.OnGuildCreated += Gateway_OnGuildCreated;
 
-            log.Enter("Bot connected!");
+                await shard.StartAsync(CancellationToken.None);
+                log.Enter("Bot connected!");
 
-            // Subscribe to the message creation event.
-            shard.Gateway.OnMessageCreated += Gateway_OnMessageCreated;
-            shard.Gateway.OnGuildCreated += Gateway_OnGuildCreated;
-
-            // Wait for the shard to end before closing the program.
-            while (shard.IsRunning)
-                await Task.Delay(1000);
+                // Wait for the shard to end before closing the program.
+                await shard.WaitUntilStoppedAsync();
+            }
         }
         #endregion
         
@@ -101,7 +102,8 @@ namespace Saftbot.NET
 
             try
             {
-                DiscordMessage sentmessage = await textChannel.SendMessage($"{message}");
+                //DiscordMessage sentmessage = await textChannel.SendMessage($"{message}");
+                await textChannel.CreateMessage(message);
                 log.Enter($"Succesfully send message: '{message}'");
             }
             catch (Exception e)
@@ -129,7 +131,7 @@ namespace Saftbot.NET
                 loggingThread.Start();
 
                 // Grab the DM or guild text channel this message was posted in from cache.
-                ITextChannel textChannel = (ITextChannel)shard.Cache.Channels.Get(message.ChannelId);
+                ITextChannel textChannel = (ITextChannel)shard.Cache.GetChannel(message.ChannelId);                
 
                 // Ignore all commands not from servers
                 if (textChannel.ChannelType != DiscordChannelType.Guild)
@@ -146,7 +148,7 @@ namespace Saftbot.NET
                 Array.Copy(splitmsg, 1, arguments, 0, splitmsg.Length - 1);
                 
                 // Retrieve guild- and authorIDs
-                ulong guildID = ((DiscordGuildTextChannel)shard.Cache.Channels.Get(message.ChannelId)).GuildId.Id;
+                ulong guildID = ((DiscordGuildTextChannel)shard.Cache.GetChannel(message.ChannelId)).GuildId.Id;
                 ulong authorID = message.Author.Id.Id;
 
                 // Get a userProfile for the author

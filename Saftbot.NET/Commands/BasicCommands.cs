@@ -136,7 +136,7 @@ namespace Saftbot.NET.Commands
         public override string RunCommand(CommandInformation cmdinfo)
         {
             //grab guilds owner from cache
-            DiscordGuild guild = (cmdinfo.Shard.Cache.Guilds.Get(new Discore.Snowflake(cmdinfo.GuildID))).Value;
+            DiscordGuild guild = (cmdinfo.Shard.Cache.GetGuild(new Discore.Snowflake(cmdinfo.GuildID)));
             ulong ownerID = guild.OwnerId.Id;
             ulong guildID = guild.Id.Id;
 

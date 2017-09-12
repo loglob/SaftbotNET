@@ -86,6 +86,7 @@ namespace Saftbot.NET.Commands
             return message;
         }
 
+
         private string give(IEnumerable<DiscordUser> users, permission perm, ulong guildID)
         {
             string message = "";
@@ -111,6 +112,7 @@ namespace Saftbot.NET.Commands
                 return $"{user.GetMention()} is now {perm.FullName}";
             }
         }
+
 
         private string take(IEnumerable<DiscordUser> users, permission perm, ulong guildID)
         {
@@ -138,6 +140,7 @@ namespace Saftbot.NET.Commands
             }
         }
 
+
         private string view(IEnumerable<DiscordUser> users, permission perm, ulong guildID)
         {
             string message = "";
@@ -155,7 +158,7 @@ namespace Saftbot.NET.Commands
         {
             return $"{user.GetMention()} {((user.Is(perm.Setting)) ? ("is") : ("isn't"))} {perm.FullName}";
         }
-#endregion
+        #endregion
     }
 
     struct permission

@@ -15,7 +15,8 @@ namespace Saftbot.NET.Commands
         public override string RunCommand(CommandInformation cmdinfo)
         {
             Program.log.Enter($"{cmdinfo.Message.Author.Username} ({cmdinfo.Message.Author.Id.Id}) has shut the bot down.");
-            cmdinfo.Shard.Application.ShardManager.StopShardsAsync(CancellationToken.None);
+            //cmdinfo.Shard.Application.ShardManager.StopShardsAsync(CancellationToken.None);
+            cmdinfo.Shard.StopAsync();
 
             if (Program.database.FetchEntry(cmdinfo.GuildID).FetchSetting(DBSystem.ServerSettings.coolReference))
                 return "L\nO";

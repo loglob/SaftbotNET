@@ -6,12 +6,27 @@ namespace Saftbot.NET.Modules
     {
         public UserProfile(ulong userID, ulong guildID)
         {
-            UserID = userID;
-            GuildID = guildID;
+            this.userID = userID;
+            this.guildID = guildID;
         }
 
-        private ulong UserID;
-        private ulong GuildID;
+        private ulong userID;
+        private ulong guildID;
+
+        public ulong UserID
+        {
+            get
+            {
+                return userID;
+            }
+        }
+        public ulong GuildID
+        {
+            get
+            {
+                return guildID;
+            }
+        }
 
         public int PermissionLevel
         {
@@ -23,30 +38,30 @@ namespace Saftbot.NET.Modules
                     return 2;
                 if (HasPlaybackPerms)
                     return 1;
-                else
-                    return 0;
+
+                return 0;
             }
         }
 
-        public void Set(UserSettings setting, bool newValue)
+        public void SetSetting(UserSettings setting, bool newValue)
         {
-            Program.database.FetchEntry(GuildID).EditUserSetting(UserID, setting, newValue);
+            Program.database.FetchEntry(guildID).EditUserSetting(userID, setting, newValue);
         }
 
-        public bool Is(UserSettings setting)
+        public bool GetSetting(UserSettings setting)
         {
-            return Program.database.FetchEntry(GuildID).FetchUserSetting(UserID, setting);
+            return Program.database.FetchEntry(guildID).FetchUserSetting(userID, setting);
         }
 
         public bool IsIgnored
         {
             get
             {
-                return Program.database.FetchEntry(GuildID).FetchUserSetting(UserID, UserSettings.isIgnored);
+                return GetSetting(UserSettings.isIgnored);
             }
             set
             {
-                Program.database.FetchEntry(GuildID).EditUserSetting(UserID, UserSettings.isIgnored, value);
+                SetSetting(UserSettings.isIgnored, value);
             }
         }
 
@@ -54,11 +69,11 @@ namespace Saftbot.NET.Modules
         {
             get
             {
-                return Program.database.FetchEntry(GuildID).FetchUserSetting(UserID, UserSettings.isAdmin);
+                return GetSetting(UserSettings.isAdmin);
             }
             set
             {
-                Program.database.FetchEntry(GuildID).EditUserSetting(UserID, UserSettings.isAdmin, value);
+                SetSetting(UserSettings.isAdmin, value);
             }
         }
 
@@ -66,11 +81,11 @@ namespace Saftbot.NET.Modules
         {
             get
             {
-                return Program.database.FetchEntry(GuildID).FetchUserSetting(UserID, UserSettings.isDJ);
+                return GetSetting(UserSettings.isDJ);
             }
             set
             {
-                Program.database.FetchEntry(GuildID).EditUserSetting(UserID, UserSettings.isDJ, value);
+                SetSetting(UserSettings.isDJ, value);
             }
         }
 
@@ -78,7 +93,7 @@ namespace Saftbot.NET.Modules
         {
             get
             {
-                return (UserID == 66261079918915584 || UserID == 291958246179078144);
+                return (userID == 66261079918915584 || userID == 291958246179078144);
             }
         }
 
@@ -86,13 +101,16 @@ namespace Saftbot.NET.Modules
         {
             get
             {
-                return IsAdmin || IsDJ || Program.database.FetchEntry(GuildID).FetchSetting(ServerSettings.plebsCanDJ);
+                return (PermissionLevel >= 1) || Program.database.FetchEntry(guildID).FetchSetting(ServerSettings.plebsCanDJ);
             }
         }
 
-        public string GetMention()
+        public string Mention
         {
-            return Utility.Mention(UserID);
+            get
+            {
+                return Utility.Mention(userID);
+            }
         }
     }
 }

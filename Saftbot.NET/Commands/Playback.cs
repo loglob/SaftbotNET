@@ -17,7 +17,7 @@ namespace Saftbot.NET.Commands
 
         public override void RunCommand(CommandInformation cmdinfo)
         {
-            cmdinfo.Messaging.Send(new UserProfile(cmdinfo.AuthorID, cmdinfo.GuildID).HasPlaybackPerms.ToString());
+            cmdinfo.Messaging.Send((cmdinfo.Author.HasPlaybackPerms)?"You can DJ":"You can't DJ");
         }
     }
     

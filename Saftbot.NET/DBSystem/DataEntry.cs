@@ -81,6 +81,14 @@ namespace Saftbot.NET.DBSystem
             EditSettingsHeader(TurnIntoBytes(boolifiedSettingsHeader));
         }
 
+        public void EditSettingsHeader(bool[] newValues)
+        {
+            for (int i = 0; i < 16; i++)
+            {
+                EditSetting((ServerSettings)i, newValues[i]);
+            }
+        }
+
         /// <summary>
         /// Overwrite the raw settings header with new raw data
         /// </summary>
@@ -348,16 +356,16 @@ namespace Saftbot.NET.DBSystem
             return settings;
         }
 
-        private bool[] TurnIntoBools(byte[] rawHeaderData)
+        private bool[] TurnIntoBools(byte[] bytes)
         {
-            bool[] header = new bool[rawHeaderData.Length * 8];
+            bool[] bools = new bool[bytes.Length * 8];
 
-            for (int i = 0; i < rawHeaderData.Length; i++)
+            for (int i = 0; i < bytes.Length; i++)
             {
-                Array.Copy(TurnIntoBools(rawHeaderData[i]), 0, header, i * 8, 8);
+                Array.Copy(TurnIntoBools(bytes[i]), 0, bools, i * 8, 8);
             }
 
-            return header;
+            return bools;
         }
 
         private byte[] TurnIntoBytes(bool[] headerData)

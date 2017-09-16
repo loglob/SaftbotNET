@@ -14,9 +14,9 @@ namespace Saftbot.NET.Commands
 
         public override void RunCommand(CommandInformation cmdinfo)
         {
-            Program.log.Enter($"{cmdinfo.Message.Author.Username} ({cmdinfo.Message.Author.Id.Id}) has shut the bot down.");
+            Program.log.Enter($"{cmdinfo.Message.Author.Username} ({cmdinfo.Author.UserID}) has shut the bot down.");
 
-            if (Program.database.FetchEntry(cmdinfo.GuildID).FetchSetting(DBSystem.ServerSettings.coolReference))
+            if (cmdinfo.Guild.CoolReference)
             {
                 cmdinfo.Messaging.Send("L");
                 Thread.Sleep(1500);

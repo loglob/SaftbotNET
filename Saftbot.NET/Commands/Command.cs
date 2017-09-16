@@ -14,6 +14,7 @@ namespace Saftbot.NET.Commands
         /// 0: No Perms needed
         /// 1: Playback Perms
         /// 2: Admin Perms
+        /// 3: Developer Perms
         /// </summary>
         public int PermsRequired;
 
@@ -29,18 +30,19 @@ namespace Saftbot.NET.Commands
 
     public struct CommandInformation
     {
-        public ulong GuildID;
-        public ulong AuthorID;
+        public Modules.UserProfile Author;
+        public Modules.GuildProfile Guild;
         public string[] Arguments;
         public DiscordMessage Message;
         public Shard Shard;
         public Modules.Messaging Messaging;
+        
 
         public string MentionAuthor
         {
             get
             {
-                return Modules.Utility.Mention(AuthorID);
+                return Author.Mention;
             }
         }
     }

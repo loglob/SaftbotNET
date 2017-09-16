@@ -1,6 +1,5 @@
 ﻿using System;
 using Discore;
-using System.Threading.Tasks;
 using Discore.WebSocket;
 using System.Threading;
 using System.IO;
@@ -43,32 +42,61 @@ namespace Saftbot.NET
         /// A version tag appended to the !status message.
         /// Doesn't serve any real purpose
         /// </summary>
-        public const string saftbotVersionTag = "SaftBot™ v3.0 'Manual version incrementing is hard'-Edition";
+        public const string saftbotVersionTag = "SaftBot v3.1 'Error tracing now easier'-Edition";
         
         #region initializing methods
         public static void Main(string[] args)
         {
-            Program program = new Program();
-           
-            //Get absolute path to the bot (the directory the Saftbot.NET.dll file is in)
-            string assemblyPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-
-            //Initialize new Database
-            database = new Database(assemblyPath + Path.DirectorySeparatorChar + "db" + Path.DirectorySeparatorChar);
-
-            //Initialize new Log
-            log = new Log();
-
+            string currentwork = "initializing";
+            
             try
             {
-                program.Run().Wait();
+                log = new Log();
+
+                currentwork = "initializing database";
+                //Get absolute path to the bot (the directory the Saftbot.NET.dll file is in)
+                string assemblyPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                //Initialize new Database
+                database = new Database(assemblyPath + Path.DirectorySeparatorChar + "db" + Path.DirectorySeparatorChar);
+
+                Program program = new Program();
+                program.Run(out currentwork);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                log.Enter(e);
+                log.Enter(e, currentwork);
             }
         }
 
+        public void Run(out string currentWork)
+        {
+            // Create authenticator using a bot user token.
+            currentWork = "initializing (grabbing token)";
+            string token = File.ReadAllText(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/discord_token.txt");
+
+            httpClient = new DiscordHttpClient(token);
+
+            // Create and start a single shard.
+            currentWork = "initializing (starting shard)";
+            Shard shard = new Shard(token, 0, 1);
+
+            currentWork = "initializing (subscribing methods)";
+            // Subscribe to the message creation event.
+            shard.Gateway.OnMessageCreated += Gateway_OnMessageCreated;
+            // Subscribe to the guild creatino event.
+            shard.Gateway.OnGuildCreated += Gateway_OnGuildCreated;
+
+
+            currentWork = "initializing (Trying to connect)";
+            shard.StartAsync(CancellationToken.None).Wait();
+            log.Enter("Bot connected!");
+
+            // Wait for the shard to end before closing the program.
+            currentWork = "running";
+            shard.WaitUntilStoppedAsync().Wait();
+        }
+
+        /*
         public async Task Run()
         {
             // Create authenticator using a bot user token.
@@ -81,6 +109,7 @@ namespace Saftbot.NET
             
             // Subscribe to the message creation event.
             shard.Gateway.OnMessageCreated += Gateway_OnMessageCreated;
+            // Subscribe to the guild creatino event.
             shard.Gateway.OnGuildCreated += Gateway_OnGuildCreated;
 
             await shard.StartAsync(CancellationToken.None);
@@ -88,15 +117,14 @@ namespace Saftbot.NET
 
             // Wait for the shard to end before closing the program.
             await shard.WaitUntilStoppedAsync();
-        }
+        } */
         #endregion
-        
+
         /// <summary>
         /// Called whenever a message is send
         /// </summary>
         private static async void Gateway_OnMessageCreated(object sender, MessageEventArgs e)
         {
-            Shard shard = e.Shard;
             DiscordMessage message = e.Message;
 
             if (message.Content.StartsWith("!"))
@@ -104,10 +132,8 @@ namespace Saftbot.NET
                 // Ignore messages created by this bot or any other bots
                 if (message.Author.IsBot)
                     return;
-
-                // Log the send command asynchronously to keep respond time low
-                Thread loggingThread = new Thread(() => log.Enter($"{message.Author.Username} sent command: {message.Content}"));
-                loggingThread.Start();
+                
+                Shard shard = e.Shard;
 
                 // Grab the DM or guild text channel this message was posted in from cache.
                 ITextChannel textChannel = (ITextChannel)shard.Cache.GetChannel(message.ChannelId);                
@@ -117,7 +143,6 @@ namespace Saftbot.NET
                     return;
 
                 // Visually represent that the bot is working on the command
-                // Done asychronically so it will not slow down respond
                 await textChannel.TriggerTypingIndicator();
                 
                 // Split message into command and arguments
@@ -140,8 +165,8 @@ namespace Saftbot.NET
                 //Build a CommandInformation struct used to call commands
                 Commands.CommandInformation cmdinfo = new Commands.CommandInformation()
                 {
-                    AuthorID = authorID,
-                    GuildID = guildID,
+                    Author = authorProfile,
+                    Guild = new GuildProfile(guildID),
                     Arguments = arguments,
                     Message = message,
                     Shard = shard,
@@ -152,7 +177,19 @@ namespace Saftbot.NET
                 {
                     if(command == cmd.Name.ToLower())
                     {
-                        cmd.RunCommand(cmdinfo);
+                        // Log the send command asynchronously to keep respond time low
+                        new Thread(() => log.Enter($"{message.Author.Username} sent command: '{message.Content}'")).Start();
+                        
+                        try
+                        {
+                            cmd.RunCommand(cmdinfo);
+                        }
+                        catch(Exception exception)
+                        {
+                            log.Enter(exception, $"processing comamnd '{message.Content}'");
+                        }
+
+                        return;
                     }
                 }
                 
@@ -173,8 +210,10 @@ namespace Saftbot.NET
             }
 
             //register the owner as admin of the server
-            UserProfile owner = new UserProfile(e.Guild.Id.Id, e.Guild.OwnerId.Id);
-            owner.IsAdmin = true;
+            new UserProfile(e.Guild.Id.Id, e.Guild.OwnerId.Id)
+            {
+                IsAdmin = true
+            };
         }
     }
 }

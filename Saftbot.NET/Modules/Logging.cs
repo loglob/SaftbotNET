@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Saftbot.NET.Modules
 {
@@ -47,17 +48,16 @@ namespace Saftbot.NET.Modules
 
             Console.WriteLine(entry);
         }
-
+        
         public void Enter(Exception e)
         {
-            Enter($"Encountered {e.GetType().ToString()} at {e.Source} \n Message: {e.Message} \n Data: {e.Data} \n " +
-                $"Check {e.HelpLink} for help");
+            Enter($"Encountered {e.GetType().ToString()} at {e.Source} \n Message: {e.Message} \n Data: {e.Data} \n ");
         }
 
         public void Enter(Exception e, string source)
         {
-            Enter($"Encountered {e.GetType().ToString()} while {source} \n {e.Message} \n at: {e.Source} \n data: {e.Data} \n" +
-                $"help at: {e.HelpLink}");
+            Enter($"Encountered {e.GetType().ToString()} while {source} \n {e.Message} \n at: {e.Source} \n data: {e.Data}");
         }
+        
     }
 }

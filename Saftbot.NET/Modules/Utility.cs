@@ -50,7 +50,7 @@ namespace Saftbot.NET.Modules
 
             return ($"I am running on {machineName}, specs:\nOS:{OSdesc}({OSarch})\nCPU:{CoreCount} " +
                 $"Core {cpuarch} CPU\nTimezone: {timezone}(UTC+{UTCoffset})\nFramework: {fwInfo}\nUptime: {uptime}\n" +
-                $"Saftbot-Versiontag™: {Program.saftbotVersionTag}");
+                $"Saftbot-Versiontag: {Program.saftbotVersionTag}");
         }
 
     }

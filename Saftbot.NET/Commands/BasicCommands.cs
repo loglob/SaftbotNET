@@ -92,7 +92,7 @@ namespace Saftbot.NET.Commands
 
         public override void RunCommand(CommandInformation cmdinfo)
         {
-            cmdinfo.Messaging.Send($"{cmdinfo.MentionAuthor} , your ID is {cmdinfo.AuthorID}");
+            cmdinfo.Messaging.Send($"{cmdinfo.MentionAuthor} , your ID is {cmdinfo.Author.UserID}");
         }
     }
 
@@ -136,7 +136,7 @@ namespace Saftbot.NET.Commands
         public override void RunCommand(CommandInformation cmdinfo)
         {
             //grab guilds owner from cache
-            DiscordGuild guild = (cmdinfo.Shard.Cache.GetGuild(new Discore.Snowflake(cmdinfo.GuildID)));
+            DiscordGuild guild = (cmdinfo.Shard.Cache.GetGuild(new Snowflake(cmdinfo.Guild.GuildID)));
             ulong ownerID = guild.OwnerId.Id;
             ulong guildID = guild.Id.Id;
 
@@ -144,12 +144,12 @@ namespace Saftbot.NET.Commands
 
             if(owner.IsAdmin)
             {
-                cmdinfo.Messaging.Send($"{owner.GetMention()} is already an Admin!");
+                cmdinfo.Messaging.Send($"{owner.Mention} is already an Admin!");
             }
             else
             {
                 owner.IsAdmin = true;
-                cmdinfo.Messaging.Send($"{owner.GetMention()} is now an Admin!");
+                cmdinfo.Messaging.Send($"{owner.Mention} is now an Admin!");
             }
         }
     }
@@ -171,8 +171,9 @@ namespace Saftbot.NET.Commands
             foreach (DiscordUser mentionedUser in cmdinfo.Message.Mentions)
             {
                 List<string> descriptions = new List<string>();
-                UserProfile mentionedUserProfile = new UserProfile(mentionedUser.Id.Id, cmdinfo.GuildID);
-
+                UserProfile mentionedUserProfile = new UserProfile(mentionedUser.Id.Id, cmdinfo.Guild.GuildID);
+                
+                //TODO: [maybe] make !whois more dynamic
                 if (mentionedUserProfile.IsAdmin)
                     descriptions.Add("an admin");
                 if (mentionedUserProfile.IsIgnored)

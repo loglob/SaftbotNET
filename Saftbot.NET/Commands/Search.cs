@@ -57,7 +57,7 @@ namespace Saftbot.NET.Commands
                     
                 }
 
-                if (Program.database.FetchEntry(cmdinfo.GuildID).FetchSetting(DBSystem.ServerSettings.useGoogle))
+                if (Program.database.FetchEntry(cmdinfo.Guild.GuildID).FetchSetting(DBSystem.ServerSettings.useGoogle))
                     return Providers[1].GetLink("", cmdinfo.Arguments);
                 else
                     return Providers[0].GetLink("", cmdinfo.Arguments);

@@ -2,8 +2,13 @@
 using Saftbot.NET.DBSystem;
 using System.Collections.Generic;
 
+// Disable a warning about naming methods lowercase
+// (I do this to show they are private members)
+#pragma warning disable IDE1006
+
 namespace Saftbot.NET.Commands
 {
+
     public class Permissions : Command
     {
         private permission[] AllPermissions = new permission[]
@@ -37,20 +42,19 @@ namespace Saftbot.NET.Commands
 
                 if (cmdinfo.Arguments.Length >= 2 && (cmdinfo.Message.Mentions.Count > 0))
                 {
-                    permission permissionMode;
 
-                    if (TryParsePerm(cmdinfo.Arguments[1], out permissionMode))
+                    if (TryParsePerm(cmdinfo.Arguments[1], out permission permissionMode))
                     {
-                        switch(mode)
+                        switch (mode)
                         {
                             case "give":
-                                return give(cmdinfo.Message.Mentions, permissionMode, cmdinfo.GuildID);
-                                
+                                return give(cmdinfo.Message.Mentions, permissionMode, cmdinfo.Guild.GuildID);
+
                             case "take":
-                                return take(cmdinfo.Message.Mentions, permissionMode, cmdinfo.GuildID);
+                                return take(cmdinfo.Message.Mentions, permissionMode, cmdinfo.Guild.GuildID);
 
                             case "view":
-                                return view(cmdinfo.Message.Mentions, permissionMode, cmdinfo.GuildID);
+                                return view(cmdinfo.Message.Mentions, permissionMode, cmdinfo.Guild.GuildID);
                             default:
                                 return "Unknown mode. Use !help permissions for proper usage.";
                         }
@@ -107,14 +111,14 @@ namespace Saftbot.NET.Commands
 
         private string give(Modules.UserProfile user, permission perm)
         {
-            if(user.Is(perm.Setting))
+            if(user.GetSetting(perm.Setting))
             {
-                return $"{user.GetMention()} is already {perm.FullName}!";
+                return $"{user.Mention} is already {perm.FullName}!";
             }
             else
             {
-                user.Set(perm.Setting, true);
-                return $"{user.GetMention()} is now {perm.FullName}";
+                user.SetSetting(perm.Setting, true);
+                return $"{user.Mention} is now {perm.FullName}";
             }
         }
 
@@ -134,14 +138,14 @@ namespace Saftbot.NET.Commands
 
         private string take(Modules.UserProfile user, permission perm)
         {
-            if (user.Is(perm.Setting))
+            if (user.GetSetting(perm.Setting))
             {
-                user.Set(perm.Setting, false);
-                return $"{user.GetMention()} is no longer {perm.FullName}";
+                user.SetSetting(perm.Setting, false);
+                return $"{user.Mention} is no longer {perm.FullName}";
             }
             else
             {
-                return $"{user.GetMention()} isn't {perm.FullName}!";
+                return $"{user.Mention} isn't {perm.FullName}!";
             }
         }
 
@@ -161,7 +165,7 @@ namespace Saftbot.NET.Commands
 
         private string view(Modules.UserProfile user, permission perm)
         {
-            return $"{user.GetMention()} {((user.Is(perm.Setting)) ? ("is") : ("isn't"))} {perm.FullName}";
+            return $"{user.Mention} {((user.GetSetting(perm.Setting)) ? ("is") : ("isn't"))} {perm.FullName}";
         }
         #endregion
     }

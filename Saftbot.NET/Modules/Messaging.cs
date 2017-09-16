@@ -1,6 +1,10 @@
 ﻿using System;
 using Discore;
 
+// Disable a warning about naming methods lowercase
+// (I do this to show they are private members)
+#pragma warning disable IDE1006
+
 namespace Saftbot.NET.Modules
 {
     public class Messaging

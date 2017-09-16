@@ -1,6 +1,10 @@
 ﻿using System;
 using Saftbot.NET.DBSystem;
 
+// Disable a warning about naming methods lowercase
+// (I do this to show they are private members)
+#pragma warning disable IDE1006
+
 namespace Saftbot.NET.Commands
 {
     public class Settings : Command
@@ -33,12 +37,12 @@ namespace Saftbot.NET.Commands
                 {
                     case ("set"):
                         if (cmdinfo.Arguments.Length >= 3)
-                            return set(cmdinfo.Arguments[1], cmdinfo.Arguments[2], cmdinfo.GuildID);
+                            return set(cmdinfo.Arguments[1], cmdinfo.Arguments[2], cmdinfo.Guild.GuildID);
                         break;
 
                     case ("view"):
                         if (cmdinfo.Arguments.Length >= 2)
-                            return view(cmdinfo.Arguments[1], cmdinfo.GuildID);
+                            return view(cmdinfo.Arguments[1], cmdinfo.Guild.GuildID);
                         break;
 
                     case ("list"):
@@ -66,9 +70,7 @@ namespace Saftbot.NET.Commands
 
         private string view(string settingName, ulong guildID)
         {
-            setting toView;
-
-            if(tryParseSetting(settingName, out toView))
+            if (tryParseSetting(settingName, out setting toView))
             {
                 return Program.database.FetchEntry(guildID).FetchSetting(toView.Setting).ToString();
             }
@@ -78,12 +80,9 @@ namespace Saftbot.NET.Commands
 
         private string set(string settingName, string newValue, ulong guildID)
         {
-            setting toChange;
-            bool newVal;
-
-            if (tryParseSetting(settingName, out toChange))
+            if (tryParseSetting(settingName, out setting toChange))
             {
-                if (Boolean.TryParse(newValue, out newVal))
+                if (Boolean.TryParse(newValue, out bool newVal))
                 {
                     Program.database.FetchEntry(guildID).EditSetting(toChange.Setting, newVal);
                     return "Settings updated";

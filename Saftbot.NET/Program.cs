@@ -95,29 +95,6 @@ namespace Saftbot.NET
             currentWork = "running";
             shard.WaitUntilStoppedAsync().Wait();
         }
-
-        /*
-        public async Task Run()
-        {
-            // Create authenticator using a bot user token.
-            string token = File.ReadAllText(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/discord_token.txt");
-
-            httpClient = new DiscordHttpClient(token);
-
-            // Create and start a single shard.
-            Shard shard = new Shard(token, 0, 1);
-            
-            // Subscribe to the message creation event.
-            shard.Gateway.OnMessageCreated += Gateway_OnMessageCreated;
-            // Subscribe to the guild creatino event.
-            shard.Gateway.OnGuildCreated += Gateway_OnGuildCreated;
-
-            await shard.StartAsync(CancellationToken.None);
-            log.Enter("Bot connected!");
-
-            // Wait for the shard to end before closing the program.
-            await shard.WaitUntilStoppedAsync();
-        } */
         #endregion
 
         /// <summary>

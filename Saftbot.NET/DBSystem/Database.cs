@@ -5,6 +5,10 @@ using System.Runtime.InteropServices;
 
 namespace Saftbot.NET.DBSystem
 {
+    /// <summary>
+    /// A custom database system made specifically for this bot
+    /// Used for maximum response speed and low RAM/disk usage
+    /// </summary>
     public class Database
     {
         /// <summary>
@@ -14,7 +18,7 @@ namespace Saftbot.NET.DBSystem
 
         /// <summary>
         /// Path to the folder in which the database saves the .sbs files that make it up
-        /// (usually the /db/ folder)
+        /// (should be {directory of Saftbot.NET.dll}/db/)
         /// </summary>
         private string folderPath;
         

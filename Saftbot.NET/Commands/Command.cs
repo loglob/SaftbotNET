@@ -5,9 +5,17 @@ namespace Saftbot.NET.Commands
 {
     public abstract class Command
     {
+        /// <summary>
+        /// The string used to call the command (i.e. !ping)
+        /// Needs to be lowercase
+        /// </summary>
         public string Name;
-        public string Description;
 
+        /// <summary>
+        /// A short description of the command's function
+        /// </summary>
+        public string Description;
+        
         public string Usage;
 
         /// <summary>
@@ -28,6 +36,9 @@ namespace Saftbot.NET.Commands
         public abstract void RunCommand(CommandInformation cmdinfo);
     }
 
+    /// <summary>
+    /// A struct of all necessary information to execute commands
+    /// </summary>
     public struct CommandInformation
     {
         public Modules.UserProfile Author;

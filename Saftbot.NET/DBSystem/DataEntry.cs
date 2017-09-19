@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Saftbot.NET.DBSystem
 {
+    /// <summary>
+    /// An entry for a single server and it's users
+    /// </summary>
     public class DataEntry
     {
         /// <summary>

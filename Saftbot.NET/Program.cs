@@ -45,7 +45,7 @@ namespace Saftbot.NET
         /// A version tag appended to the !status message.
         /// Doesn't serve any real purpose
         /// </summary>
-        public const string saftbotVersionTag = "SaftBot v3.1 'Error tracing now easier'-Edition";
+        public const string saftbotVersionTag = "SaftBot v3.2 'probably hopefully maybe working on audio now'-Edition";
         
         #region initializing methods
         public static void Main(string[] args)
@@ -142,7 +142,7 @@ namespace Saftbot.NET
                 if (authorProfile.IsIgnored)
                     return;
 
-                //Build a CommandInformation struct used to call commands
+                // Build a CommandInformation struct used to call commands
                 Commands.CommandInformation cmdinfo = new Commands.CommandInformation()
                 {
                     Author = authorProfile,
@@ -153,6 +153,7 @@ namespace Saftbot.NET
                     Messaging = new Messaging(textChannel)
                 };
 
+                // Find the command the user requested
                 foreach (var cmd in AllCommands)
                 {
                     if(command == cmd.Name.ToLower())
@@ -167,6 +168,8 @@ namespace Saftbot.NET
                         catch(Exception exception)
                         {
                             log.Enter(exception, $"processing command '{message.Content}'");
+                            cmdinfo.Messaging.Send("The SaftBot ran into a problem processing your command. If this has happend before, " +
+                                                   "please make a bug report here: https://github.com/loglob/SaftbotNET/issues");
                         }
 
                         return;
@@ -182,14 +185,14 @@ namespace Saftbot.NET
         /// </summary>
         private static void Gateway_OnGuildCreated(object sender, GuildEventArgs e)
         {
-            //Make a new, empty serverSettings entry
+            // Make a new, empty serverSettings entry
             if (!database.DoesEntryExist(e.Guild.Id.Id))
             {
                 database.RegisterEntry(database.DefaultEntry(e.Guild.Id.Id));
                 database.SaveChanges();
             }
 
-            //register the owner as admin of the server
+            // Register the owner as admin of the server
             new UserProfile(e.Guild.Id.Id, e.Guild.OwnerId.Id)
             {
                 IsAdmin = true

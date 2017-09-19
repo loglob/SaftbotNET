@@ -21,10 +21,13 @@ namespace Saftbot.NET
         internal static Database database;
         
         /// <summary>
-        /// The Log this bot writes entires into
+        /// The log that the bot writes status reports, error messages etc. to
         /// </summary>
         internal static Log log;
 
+        /// <summary>
+        /// All commands registered for the bot
+        /// </summary>
         internal static Commands.Command[] AllCommands = new Commands.Command[]
         {
             new Commands.Ping(),        new Commands.Say(),         new Commands.EightBall(),       new Commands.Status(),
@@ -163,7 +166,7 @@ namespace Saftbot.NET
                         }
                         catch(Exception exception)
                         {
-                            log.Enter(exception, $"processing comamnd '{message.Content}'");
+                            log.Enter(exception, $"processing command '{message.Content}'");
                         }
 
                         return;

@@ -1,8 +1,7 @@
-#!/usr/bin/bash
-
-while [ true ]
+#!/bin/sh
+while :
 do
-sudo dotnet ./Saftbot.NET.dll
-echo "a fatal error occured. Saftbot is being restarted. Check logs for more info"
+dotnet ./Saftbot.NET.dll
+echo "Saftbot crashed, rebooting..."
 sleep 20
 done

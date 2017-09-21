@@ -15,6 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="SearchProviders.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="start.sh">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -15,6 +15,7 @@ namespace Saftbot.NET
 
     class Program
     {
+
         /// <summary>
         /// The database instance used by the bot
         /// </summary>
@@ -24,7 +25,7 @@ namespace Saftbot.NET
         /// The log that the bot writes status reports, error messages etc. to
         /// </summary>
         internal static Log log;
-
+        
         /// <summary>
         /// All commands registered for the bot
         /// </summary>
@@ -45,7 +46,7 @@ namespace Saftbot.NET
         /// A version tag appended to the !status message.
         /// Doesn't serve any real purpose
         /// </summary>
-        public const string saftbotVersionTag = "SaftBot v3.2 'probably hopefully maybe working on audio now'-Edition";
+        public const string saftbotVersionTag = "SaftBot v3.3 'Beating Around The Audio-Implementing Bush'-Edition";
         
         #region initializing methods
         public static void Main(string[] args)
@@ -57,10 +58,9 @@ namespace Saftbot.NET
                 log = new Log();
 
                 currentwork = "initializing database";
-                //Get absolute path to the bot (the directory the Saftbot.NET.dll file is in)
-                string assemblyPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+
                 //Initialize new Database
-                database = new Database(assemblyPath + Path.DirectorySeparatorChar + "db" + Path.DirectorySeparatorChar);
+                database = new Database(AssemblyPath + "db" + Path.DirectorySeparatorChar);
 
                 Program program = new Program();
                 program.Run(out currentwork);
@@ -75,7 +75,7 @@ namespace Saftbot.NET
         {
             // Create authenticator using a bot user token.
             currentWork = "initializing (grabbing token)";
-            string token = File.ReadAllText(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/discord_token.txt");
+            string token = File.ReadAllText(AssemblyPath + "discord_token.txt");
 
             httpClient = new DiscordHttpClient(token);
 
@@ -164,6 +164,8 @@ namespace Saftbot.NET
                         try
                         {
                             cmd.RunCommand(cmdinfo);
+                            new Thread(() => log.Enter($"Response time was {(DateTime.Now - message.Timestamp).TotalMilliseconds}ms"))
+                                .Start();
                         }
                         catch(Exception exception)
                         {
@@ -197,6 +199,19 @@ namespace Saftbot.NET
             {
                 IsAdmin = true
             };
+        }
+
+
+        /// <summary>
+        /// Gets the path to the directory of Saftbot.NET.dll
+        /// (ends with direcotry seperator)
+        /// </summary>
+        public static string AssemblyPath
+        {
+            get
+            {
+                return Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + Path.DirectorySeparatorChar;
+            }
         }
     }
 }

@@ -1,0 +1,15 @@
+﻿# Give searchproviders in format:
+# shorthand|description|prefix|spaceEscape = "+"|preSuffix = ""
+# (The last two aren't required and use those as initial value)
+ddg | DuckDuckGo | https://duckduckgo.com/?q=
+g | Google | https://google.com/search?q=,
+tpb | The Piratebay | https://thepiratebay.org/search/ | %20
+yt | YouTube | https://www.youtube.com/results?search_query=
+st | Steam Store | https://store.steampowered.com/search/?term=
+tw | Twtter | https://twitter.com/search?q= | %20
+nya | Nya.sii Anime Tracker | https://nyaa.si/?q=
+r | Reddit | https://www.reddit.com/search?q=
+go | GoMovies (.sc) | https://gomovies.sc/search-query/
+r_{x} | Given Subreddit | https://www.reddit.com/r/ | + | /search?restrict_sr=on&q=
+go_{x} | Given GoMovies Mirror | https://gomovies. | + | /search-query/
+4c_{x} | Given 4chan board | https://4chan.org/ | + | /catalog#s=

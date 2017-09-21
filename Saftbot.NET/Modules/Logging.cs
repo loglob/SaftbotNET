@@ -15,7 +15,7 @@ namespace Saftbot.NET.Modules
         public Log(bool doInitMessage = true)
         {
             // Gets path to Saftbot.NET.dll and adds a subdirectory calles "logs"
-            string directoryPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + Path.DirectorySeparatorChar + "logs";
+            string directoryPath = Program.AssemblyPath + "logs";
 
             //create the logs folder if it doesn't exist
             Directory.CreateDirectory(directoryPath);

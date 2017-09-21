@@ -6,8 +6,8 @@ namespace Saftbot.NET.Commands
     public abstract class Command
     {
         /// <summary>
-        /// The string used to call the command (i.e. !ping)
-        /// Needs to be lowercase
+        /// The string used to call the command (i.e. !Ping)
+        /// case insensitive
         /// </summary>
         public string Name;
 

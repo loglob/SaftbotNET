@@ -1,6 +1,8 @@
 ﻿# Give searchproviders in format:
 # shorthand|description|prefix|spaceEscape = "+"|preSuffix = ""
 # (The last two aren't required and use those as initial value)
+# The search URL is build as: {prefix}{query with spaces replaced with spaceEscape}
+# Or, for dynamic providers: {prefix}{provider argument}{preSuffix}{query with spaces replaced with spaceEscape}
 ddg | DuckDuckGo | https://duckduckgo.com/?q=
 g | Google | https://google.com/search?q=,
 tpb | The Piratebay | https://thepiratebay.org/search/ | %20

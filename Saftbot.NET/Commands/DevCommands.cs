@@ -25,7 +25,7 @@ namespace Saftbot.NET.Commands
             else
                 cmdinfo.Messaging.Send("Shutting down...");
 
-            cmdinfo.Shard.StopAsync().Wait();
+            Program.Stop();
         }
     }
 }

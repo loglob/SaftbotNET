@@ -7,6 +7,7 @@ using System.Reflection;
 using Saftbot.NET.DBSystem;
 using Saftbot.NET.Modules;
 using Discore.Http;
+using System.Threading.Tasks;
 
 namespace Saftbot.NET
 {
@@ -15,6 +16,11 @@ namespace Saftbot.NET
 
     class Program
     {
+        /// <summary>
+        /// The time the bot sleeps in between checking for shard shutdown or manual shutdown.
+        /// Shouldn`t be set too low to avoid burning CPU cycles
+        /// </summary>
+        private const int sleepTime = 3000;
 
         /// <summary>
         /// The database instance used by the bot
@@ -41,6 +47,12 @@ namespace Saftbot.NET
         };
 
         internal static DiscordHttpClient httpClient;
+
+        public static void Stop()
+        {
+            stop = true;
+        }
+        private static bool stop;
 
         /// <summary>
         /// A version tag appended to the !status message.
@@ -91,12 +103,24 @@ namespace Saftbot.NET
 
 
             currentWork = "initializing (Trying to connect)";
-            shard.StartAsync(CancellationToken.None).Wait();
+            shard.StartAsync().Wait();
             log.Enter("Bot connected!");
 
             // Wait for the shard to end before closing the program.
             currentWork = "running";
-            shard.WaitUntilStoppedAsync().Wait();
+            Task<int> workingThread = new Task<int>(() => {
+                shard.WaitUntilStoppedAsync().Wait();
+                return 1;
+            });
+
+            // Check every 7.5 seeconds if the bot has shut down
+            while (true)
+            {
+                if (workingThread.IsCompleted || stop)
+                    return;
+
+                Thread.Sleep(sleepTime);
+            }
         }
         #endregion
 

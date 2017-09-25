@@ -1,5 +1,7 @@
 ﻿using Discore;
 using Discore.WebSocket;
+using System.Threading.Tasks;
+using System;
 
 namespace Saftbot.NET.Commands
 {
@@ -36,6 +38,22 @@ namespace Saftbot.NET.Commands
             return $"No value given for parameter '{parameterName}'";
         }
         
+        public string NoValue(int parameterID)
+        {
+            string[] parameters = Usage.Split(' ');
+
+            if (parameterID < parameters.Length)
+            {
+                string parameterName = parameters[parameterID].Replace('<', ' ').Replace('>', ' ');
+                parameterName = parameterName.Replace('[', ' ').Replace(']', ' ');
+                parameterName = parameterName.Trim();
+
+                return NoValue(parameterName);
+            }
+            else
+                throw new Exception($"Tried to resolve invalid parameter index (command: {Name}, given index: {parameterID})");
+        }
+
         public string InvalidValue(string parameterName)
         {
             return $"Invalid value given for parameter '{parameterName}'";
@@ -43,7 +61,26 @@ namespace Saftbot.NET.Commands
         
         public abstract void InitializeVariables();
 
-        public abstract void RunCommand(CommandInformation cmdinfo);
+        public virtual async void RunCommand(CommandInformation cmdinfo)
+        {
+            // Calculate number of required parameters
+            int necessaryParameters = Modules.Utility.Count(Usage, '<') - Modules.Utility.Count(Usage, '[');
+            // Check if enough arguments are given
+            if (cmdinfo.Arguments.Length < necessaryParameters)
+            {
+                cmdinfo.Messaging.Send(NoValue(cmdinfo.Arguments.Length));
+                return;
+            }
+
+            var x = new Task<string>(() => InternalRunCommand(cmdinfo));
+            x.Start();
+            cmdinfo.Messaging.Send(await x);
+        }
+
+        internal virtual string InternalRunCommand(CommandInformation cmdinfo)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     /// <summary>

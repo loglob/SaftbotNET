@@ -12,7 +12,7 @@ namespace Saftbot.NET.Commands
             Usage = "<Amount of messages>";
         }
 
-        public override void RunCommand(CommandInformation cmdinfo)
+        internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
             if (cmdinfo.Arguments.Length >= 1)
             {
@@ -23,15 +23,15 @@ namespace Saftbot.NET.Commands
                         var messagesToDelete = cmdinfo.Messaging.GetTextChannel.GetMessages(cmdinfo.Message.Id, amount);
                         cmdinfo.Messaging.GetTextChannel.BulkDeleteMessages(messagesToDelete.Result);
                         cmdinfo.Message.Delete();
-                        cmdinfo.Messaging.Send($"Purged {cmdinfo} Messages.");
-                        return;
+
+                        return $"Purged {cmdinfo} Messages.";
                     }
                 }
 
-                cmdinfo.Messaging.Send(InvalidValue("Amount"));
+                return InvalidValue("Amount");
             }
             else
-                cmdinfo.Messaging.Send(NoValue("Amount"));
+                return NoValue("Amount");
         }
     }
 }

@@ -35,6 +35,18 @@ namespace Saftbot.NET.Modules
         public static string Mention(Snowflake userID) { return Mention(userID.Id); }
         public static string Mention(ulong userID) { return $"<@{userID}>"; }
 
+        public static int Count(string text, char tocount)
+        {
+            int count = 0;
+
+            foreach (char chr in text)
+            {
+                if (chr == tocount)
+                    count++;
+            }
+
+            return count;
+        }
 
         public static string SystemSummary()
         {

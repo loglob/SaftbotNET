@@ -35,12 +35,7 @@ namespace Saftbot.NET.Commands
             ProviderSerializer.Update();
         }
         
-        public override void RunCommand(CommandInformation cmdinfo)
-        {
-            cmdinfo.Messaging.Send(InternalRunCommand(cmdinfo));
-        }
-
-        private string InternalRunCommand(CommandInformation cmdinfo)
+        internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
             if(cmdinfo.Arguments.Length > 0)
             {

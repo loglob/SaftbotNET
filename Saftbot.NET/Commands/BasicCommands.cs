@@ -15,11 +15,11 @@ namespace Saftbot.NET.Commands
             PermsRequired = 0;
             Usage = "";
         }
-
-        public override void RunCommand(CommandInformation cmdinfo)
+       
+        internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
-            TimeSpan timeSincePost = DateTime.Now.Subtract(cmdinfo.Message.Timestamp);
-            cmdinfo.Messaging.Send($"{cmdinfo.MentionAuthor} Pong! Took {timeSincePost.TotalMilliseconds} ms");
+            TimeSpan timeSincePost = DateTime.Now - cmdinfo.Message.Timestamp;
+            return $"{cmdinfo.MentionAuthor} Pong! Took {timeSincePost.TotalMilliseconds} ms";
         }
     }
 
@@ -33,15 +33,22 @@ namespace Saftbot.NET.Commands
             Usage = "<message>";
         }
 
-        public override void RunCommand(CommandInformation cmdinfo)
+        internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
             cmdinfo.Message.Delete();
-            cmdinfo.Messaging.Send($"{String.Join(" ", cmdinfo.Arguments)}");
+            return $"{String.Join(" ", cmdinfo.Arguments)}";
         }
     }
 
     public class EightBall : Command
     {
+        private static string[] answers = {"It is certain", "It is decidedly so", "Without a doubt", "Yes, definitely",
+                                            "You may rely on it", "As I see it, yes", "Most likely", "Outlook good", "Yes",
+                                            "Signs point to yes", "Reply hazy try again", "Ask again later", "Better not tell you now",
+                                            "Cannot predict now", "Concentrate and ask again", "Don't count on it", "My reply is no",
+                                            "My sources say no", "Outlook not so good", "Very doubtful", "Nah m8", "That's retarded",
+                                            "Are you stupid?", "Literally kill yourself", "Negative"};
+
         public override void InitializeVariables()
         {
             Name = "8ball";
@@ -50,17 +57,11 @@ namespace Saftbot.NET.Commands
             Usage = "";
         }
 
-        public override void RunCommand(CommandInformation cmdinfo)
+        internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
-            string[] answers = {"It is certain", "It is decidedly so", "Without a doubt", "Yes, definitely",
-                                            "You may rely on it", "As I see it, yes", "Most likely", "Outlook good", "Yes",
-                                            "Signs point to yes", "Reply hazy try again", "Ask again later", "Better not tell you now",
-                                            "Cannot predict now", "Concentrate and ask again", "Don't count on it", "My reply is no",
-                                            "My sources say no", "Outlook not so good", "Very doubtful", "Nah m8", "That's retarded",
-                                            "Are you stupid?", "Literally kill yourself", "Negative"};
             Random random = new Random();
 
-            cmdinfo.Messaging.Send(answers[(random.Next(00, answers.Length))]);
+            return answers[(random.Next(00, answers.Length))];
         }
     }
 
@@ -69,14 +70,14 @@ namespace Saftbot.NET.Commands
         public override void InitializeVariables()
         {
             Name = "Status";
-            Description = "Gives Information about the Server the bot is hostet on";
+            Description = "Gives Information about the server the bot is hosted on";
             PermsRequired = 0;
             Usage = "";
         }
 
-        public override void RunCommand(CommandInformation cmdinfo)
+        internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
-            cmdinfo.Messaging.Send(Utility.SystemSummary());
+            return Utility.SystemSummary();
         }
     }
 
@@ -89,10 +90,10 @@ namespace Saftbot.NET.Commands
             PermsRequired = 0;
             Usage = "";
         }
-
-        public override void RunCommand(CommandInformation cmdinfo)
+        
+        internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
-            cmdinfo.Messaging.Send($"{cmdinfo.MentionAuthor} , your ID is {cmdinfo.Author.UserID}");
+            return $"{cmdinfo.MentionAuthor} , your ID is {cmdinfo.Author.UserID}";
         }
     }
 
@@ -106,7 +107,7 @@ namespace Saftbot.NET.Commands
             Usage = "";
         }
 
-        public override void RunCommand(CommandInformation cmdinfo)
+        internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
             string vocals = "aeiou";
             string messsage = "";
@@ -119,7 +120,7 @@ namespace Saftbot.NET.Commands
                 messsage += vocals[rng.Next(0, vocals.Length)];
             }
 
-            cmdinfo.Messaging.Send(messsage);
+            return messsage;
         }
     }
 
@@ -219,7 +220,7 @@ namespace Saftbot.NET.Commands
             Usage = "[<command>]";
         }
 
-        public override void RunCommand(CommandInformation cmdinfo)
+        internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
             if(cmdinfo.Arguments.Length > 0)
             {
@@ -227,12 +228,11 @@ namespace Saftbot.NET.Commands
                 {
                     if (cmd.Name.ToLower() == cmdinfo.Arguments[0].ToLower())
                     {
-                        cmdinfo.Messaging.Send($"Usage: !{cmd.Name} {cmd.Usage}");
-                        return;
+                        return $"Usage: !{cmd.Name} {cmd.Usage}";
                     }
                 }
 
-                cmdinfo.Messaging.Send("Unknown command");
+                return "Unknown command";
             }
             else
             {
@@ -243,7 +243,7 @@ namespace Saftbot.NET.Commands
                     message += $"__**!{cmd.Name}**__: {cmd.Description}\n";
                 }
 
-                cmdinfo.Messaging.Send(message);
+                return message;
             }
         }
     }
@@ -258,12 +258,12 @@ namespace Saftbot.NET.Commands
             Usage = "<Message>";
         }
 
-        public override void RunCommand(CommandInformation cmdinfo)
+        internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
             string input = String.Join(' ', cmdinfo.Arguments);
 
             if (input == "")
-                return;
+                return "";
 
             string response = input;
 
@@ -273,7 +273,7 @@ namespace Saftbot.NET.Commands
             }
 
             cmdinfo.Message.Delete();
-            cmdinfo.Messaging.Send(response);
+            return response;
         }
     }
 
@@ -287,7 +287,7 @@ namespace Saftbot.NET.Commands
             Usage = "<Die size>";
         }
 
-        public override void RunCommand(CommandInformation cmdinfo)
+        internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
             if (cmdinfo.Arguments.Length >= 1)
             {
@@ -296,15 +296,14 @@ namespace Saftbot.NET.Commands
                     if (diesize > 1)
                     {
                         Random rng = new Random();
-                        cmdinfo.Messaging.Send(rng.Next(1, (diesize + 1)).ToString());
-                        return;
+                        return rng.Next(1, (diesize + 1)).ToString();
                     }
                 }
 
-                cmdinfo.Messaging.Send(InvalidValue("Die size"));
+                return InvalidValue("Die size");
             }
             else
-                cmdinfo.Messaging.Send(NoValue("Die Size"));
+                return NoValue("Die Size");
         }
     }
 }

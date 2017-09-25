@@ -25,13 +25,8 @@ namespace Saftbot.NET.Commands
             PermsRequired = 3;
             Usage = "<list/give/take/view> [<Permission name>] [<user mention(s)>]";
         }
-
-        public override void RunCommand(CommandInformation cmdinfo)
-        {
-            cmdinfo.Messaging.Send(InternalRunCommand(cmdinfo));
-        }
-
-        private string InternalRunCommand(CommandInformation cmdinfo)
+        
+        internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
             if (cmdinfo.Arguments.Length >= 1)
             {

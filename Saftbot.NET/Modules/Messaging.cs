@@ -35,6 +35,14 @@ namespace Saftbot.NET.Modules
 
         private ITextChannel textChannel;
         
+        public ITextChannel GetTextChannel
+        {
+            get
+            {
+                return textChannel;
+            }
+        }
+
         public void Send(string message)
         {
             send(textChannel, message);

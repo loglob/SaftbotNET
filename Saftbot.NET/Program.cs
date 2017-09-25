@@ -39,26 +39,21 @@ namespace Saftbot.NET
         {
             new Commands.Ping(),        new Commands.Say(),         new Commands.EightBall(),       new Commands.Status(),
             new Commands.MyID(),        new Commands.Laughter(),    new Commands.MakeOwnerAdmin(),  new Commands.WhoIs(),
-            new Commands.Repo(),        new Commands.Help(),
+            new Commands.Repo(),        new Commands.Help(),        new Commands.Square(),          new Commands.Die(),
             new Commands.Search(),
+            new Commands.Purge(),
             new Commands.Settings(),
             new Commands.Permissions(),
             new Commands.Crash()
         };
 
         internal static DiscordHttpClient httpClient;
-
-        public static void Stop()
-        {
-            stop = true;
-        }
-        private static bool stop;
-
+        
         /// <summary>
         /// A version tag appended to the !status message.
         /// Doesn't serve any real purpose
         /// </summary>
-        public const string saftbotVersionTag = "SaftBot v3.3 'Beating Around The Audio-Implementing Bush'-Edition";
+        public const string saftbotVersionTag = "SaftBot v3.4";
         
         #region initializing methods
         public static void Main(string[] args)
@@ -76,6 +71,10 @@ namespace Saftbot.NET
 
                 Program program = new Program();
                 program.Run(out currentwork);
+            }
+            catch(Commands.StopNowException)
+            {
+                log.Enter("The bot shut down normally");
             }
             catch (Exception e)
             {
@@ -108,19 +107,7 @@ namespace Saftbot.NET
 
             // Wait for the shard to end before closing the program.
             currentWork = "running";
-            Task<int> workingThread = new Task<int>(() => {
-                shard.WaitUntilStoppedAsync().Wait();
-                return 1;
-            });
-
-            // Check every 7.5 seeconds if the bot has shut down
-            while (true)
-            {
-                if (workingThread.IsCompleted || stop)
-                    return;
-
-                Thread.Sleep(sleepTime);
-            }
+            shard.WaitUntilStoppedAsync().Wait();
         }
         #endregion
 
@@ -190,6 +177,10 @@ namespace Saftbot.NET
                             cmd.RunCommand(cmdinfo);
                             new Thread(() => log.Enter($"Response time was {(DateTime.Now - message.Timestamp).TotalMilliseconds}ms"))
                                 .Start();
+                        }
+                        catch(Commands.StopNowException stopNow)
+                        {
+                            throw stopNow;
                         }
                         catch(Exception exception)
                         {

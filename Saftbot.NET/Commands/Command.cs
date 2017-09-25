@@ -30,7 +30,17 @@ namespace Saftbot.NET.Commands
         {
             InitializeVariables();
         }
-
+        
+        public string NoValue(string parameterName)
+        {
+            return $"No value given for parameter '{parameterName}'";
+        }
+        
+        public string InvalidValue(string parameterName)
+        {
+            return $"Invalid value given for parameter '{parameterName}'";
+        }
+        
         public abstract void InitializeVariables();
 
         public abstract void RunCommand(CommandInformation cmdinfo);

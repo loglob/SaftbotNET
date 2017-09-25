@@ -226,7 +226,10 @@ namespace Saftbot.NET.Commands
                 foreach (Command cmd in Program.AllCommands)
                 {
                     if (cmd.Name.ToLower() == cmdinfo.Arguments[0].ToLower())
+                    {
                         cmdinfo.Messaging.Send($"Usage: !{cmd.Name} {cmd.Usage}");
+                        return;
+                    }
                 }
 
                 cmdinfo.Messaging.Send("Unknown command");
@@ -242,6 +245,66 @@ namespace Saftbot.NET.Commands
 
                 cmdinfo.Messaging.Send(message);
             }
+        }
+    }
+
+    public class Square : Command
+    {
+        public override void InitializeVariables()
+        {
+            Name = "Square";
+            Description = "Prints a message *squared*";
+            PermsRequired = 0;
+            Usage = "<Message>";
+        }
+
+        public override void RunCommand(CommandInformation cmdinfo)
+        {
+            string input = String.Join(' ', cmdinfo.Arguments);
+
+            if (input == "")
+                return;
+
+            string response = input;
+
+            foreach (char chr in input.Substring(1))
+            {
+                response += "\n" + chr;
+            }
+
+            cmdinfo.Message.Delete();
+            cmdinfo.Messaging.Send(response);
+        }
+    }
+
+    public class Die : Command
+    {
+        public override void InitializeVariables()
+        {
+            Name = "D";
+            Description = "Rolls a fair dice with results between 1 und the given number (inclusive)";
+            PermsRequired = 0;
+            Usage = "<Die size>";
+        }
+
+        public override void RunCommand(CommandInformation cmdinfo)
+        {
+            if (cmdinfo.Arguments.Length >= 1)
+            {
+                if (Int32.TryParse(cmdinfo.Arguments[0], out int diesize))
+                {
+                    if (diesize > 1)
+                    {
+                        Random rng = new Random();
+                        cmdinfo.Messaging.Send(rng.Next(1, (diesize + 1)).ToString());
+                        return;
+                    }
+                }
+
+                cmdinfo.Messaging.Send(InvalidValue("Die size"));
+            }
+            else
+                cmdinfo.Messaging.Send(NoValue("Die Size"));
         }
     }
 }

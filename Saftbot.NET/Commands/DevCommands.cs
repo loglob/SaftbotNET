@@ -1,7 +1,14 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 
 namespace Saftbot.NET.Commands
 {
+    /// <summary>
+    /// An exception that tells the bot to shut down immidiatly. If cought anywhere, it should be thrown again. Should only be resolved in Main()
+    /// </summary>
+    public class StopNowException : Exception
+    { }
+
     public class Crash : Command
     {
         public override void InitializeVariables()
@@ -25,7 +32,7 @@ namespace Saftbot.NET.Commands
             else
                 cmdinfo.Messaging.Send("Shutting down...");
 
-            Program.Stop();
+            throw new StopNowException();
         }
     }
 }

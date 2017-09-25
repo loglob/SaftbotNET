@@ -52,6 +52,9 @@ namespace Saftbot.NET.Modules
         {
             List<string> args = new List<string>();
 
+            if (cmd.Usage == "")
+                return new string[0];
+
             foreach (string arg in cmd.Usage.Split(' '))
             {
                 if(!(arg.Contains('[')))

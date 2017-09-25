@@ -1,5 +1,6 @@
 ﻿using System;
 using Discore;
+using System.Threading.Tasks;
 
 // Disable a warning about naming methods lowercase
 // (I do this to show they are private members)
@@ -11,20 +12,21 @@ namespace Saftbot.NET.Modules
     {
         public const string NoPermsMessage = "You do not have the required permissions to run this command";
 
-        private static void send(ITextChannel textChannel, string message)
+        private static async Task<bool> send(ITextChannel textChannel, string message)
         {
             if (message == "")
-                return;
+                return false;
 
             try
             {
-                //DiscordMessage sentmessage = await textChannel.SendMessage($"{message}");
-                textChannel.CreateMessage(message).Wait();
+                await textChannel.CreateMessage(message);
                 Program.log.Enter($"Succesfully send message: '{message}'");
+                return true;
             }
             catch (Exception e)
             {
                 Program.log.Enter(e, $"trying to send message: '{message}'");
+                return false;
             }
         }
 
@@ -43,14 +45,14 @@ namespace Saftbot.NET.Modules
             }
         }
 
-        public void Send(string message)
+        public async Task<bool> Send(string message)
         {
-            send(textChannel, message);
+            return await send(textChannel, message);
         }
 
-        public void NoPerms()
+        public async Task<bool> NoPerms()
         {
-            send(textChannel, NoPermsMessage);
+            return await send(textChannel, NoPermsMessage);
         }
     }
 }

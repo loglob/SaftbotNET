@@ -3,6 +3,7 @@ using Saftbot.NET.Modules;
 using Saftbot.NET.DBSystem;
 using Discore;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Saftbot.NET.Commands
 {
@@ -134,7 +135,7 @@ namespace Saftbot.NET.Commands
             Usage = "";
         }
 
-        public override void RunCommand(CommandInformation cmdinfo)
+        internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
             //grab guilds owner from cache
             DiscordGuild guild = (cmdinfo.Shard.Cache.GetGuild(new Snowflake(cmdinfo.Guild.GuildID)));
@@ -145,12 +146,12 @@ namespace Saftbot.NET.Commands
 
             if(owner.IsAdmin)
             {
-                cmdinfo.Messaging.Send($"{owner.Mention} is already an Admin!");
+                return $"{owner.Mention} is already an Admin!";
             }
             else
             {
                 owner.IsAdmin = true;
-                cmdinfo.Messaging.Send($"{owner.Mention} is now an Admin!");
+                return $"{owner.Mention} is now an Admin!";
             }
         }
     }
@@ -165,7 +166,7 @@ namespace Saftbot.NET.Commands
             Usage = "<user mention(s)>";
         }
 
-        public override void RunCommand(CommandInformation cmdinfo)
+        internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
             string message = "";
 
@@ -190,7 +191,7 @@ namespace Saftbot.NET.Commands
                     message += $"{Utility.Mention(mentionedUser)} is a nobody\n";
             }
 
-            cmdinfo.Messaging.Send(message);
+            return message;
         }
     }
 
@@ -204,9 +205,9 @@ namespace Saftbot.NET.Commands
             Usage = "";
         }
 
-        public override void RunCommand(CommandInformation cmdinfo)
+        internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
-            cmdinfo.Messaging.Send("My source can be found at https://github.com/LordGruem/SaftbotNET");
+            return "My source can be found at https://github.com/LordGruem/SaftbotNET";
         }
     }
 

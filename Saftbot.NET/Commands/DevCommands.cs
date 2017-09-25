@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Saftbot.NET.Commands
 {
@@ -19,18 +20,18 @@ namespace Saftbot.NET.Commands
             Usage = "";
         }
 
-        public override void RunCommand(CommandInformation cmdinfo)
+        public override async Task<bool> RunCommand(CommandInformation cmdinfo)
         {
             Program.log.Enter($"{cmdinfo.Message.Author.Username} ({cmdinfo.Author.UserID}) has shut the bot down.");
 
             if (cmdinfo.Guild.CoolReference)
             {
-                cmdinfo.Messaging.Send("L");
+                await cmdinfo.Messaging.Send("L");
                 Thread.Sleep(1500);
-                cmdinfo.Messaging.Send("O");
+                await cmdinfo.Messaging.Send("O");
             }
             else
-                cmdinfo.Messaging.Send("Shutting down...");
+                await cmdinfo.Messaging.Send("Shutting down...");
 
             throw new StopNowException();
         }

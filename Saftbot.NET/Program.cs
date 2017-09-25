@@ -120,6 +120,7 @@ namespace Saftbot.NET
 
             if (message.Content.StartsWith("!"))
             {
+                #region preparing cmdinfo
                 // Ignore messages created by this bot or any other bots
                 if (message.Author.IsBot)
                     return;
@@ -152,7 +153,7 @@ namespace Saftbot.NET
                 // Ignore messages made by ignored users
                 if (authorProfile.IsIgnored)
                     return;
-
+                
                 // Build a CommandInformation struct used to call commands
                 Commands.CommandInformation cmdinfo = new Commands.CommandInformation()
                 {
@@ -163,6 +164,7 @@ namespace Saftbot.NET
                     Shard = shard,
                     Messaging = new Messaging(textChannel)
                 };
+                #endregion
 
                 // Find the command the user requested
                 foreach (var cmd in AllCommands)
@@ -171,25 +173,30 @@ namespace Saftbot.NET
                     {
                         // Log the send command asynchronously to keep respond time low
                         new Thread(() => log.Enter($"{message.Author.Username} sent command: '{message.Content}'")).Start();
-                        
-                        try
-                        {
-                            cmd.RunCommand(cmdinfo);
-                            new Thread(() => log.Enter($"Response time was {(DateTime.Now - message.Timestamp).TotalMilliseconds}ms"))
-                                .Start();
-                        }
-                        catch(Commands.StopNowException stopNow)
-                        {
-                            throw stopNow;
-                        }
-                        catch(Exception exception)
-                        {
-                            log.Enter(exception, $"processing command '{message.Content}'");
-                            cmdinfo.Messaging.Send("The SaftBot ran into a problem processing your command. If this has happend before, " +
-                                                   "please make a bug report here: https://github.com/loglob/SaftbotNET/issues");
-                        }
 
-                        return;
+                        if (authorProfile.PermissionLevel >= cmd.PermsRequired)
+                        {
+                            try
+                            {
+                                await cmd.RunCommand(cmdinfo);
+                                new Thread(() => log.Enter($"Response time was {(DateTime.Now - message.Timestamp).TotalMilliseconds}ms"))
+                                    .Start();
+                            }
+                            catch (Commands.StopNowException stopNow)
+                            {
+                                throw stopNow;
+                            }
+                            catch (Exception exception)
+                            {
+                                log.Enter(exception, $"processing command '{message.Content}'");
+                                cmdinfo.Messaging.Send("The SaftBot ran into a problem processing your command. If this has happend before, " +
+                                                       "please make a bug report here: https://github.com/loglob/SaftbotNET/issues");
+                            }
+                        }
+                        else
+                        {
+                            cmdinfo.Messaging.NoPerms();
+                        }
                     }
                 }
                 

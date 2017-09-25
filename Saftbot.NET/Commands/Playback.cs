@@ -15,9 +15,9 @@ namespace Saftbot.NET.Commands
             Usage = "";
         }
 
-        public override void RunCommand(CommandInformation cmdinfo)
+        internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
-            cmdinfo.Messaging.Send((cmdinfo.Author.HasPlaybackPerms)?"You can DJ":"You can't DJ");
+            return ((cmdinfo.Author.HasPlaybackPerms)?"You can DJ":"You can't DJ");
         }
     }
     

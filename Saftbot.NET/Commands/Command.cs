@@ -61,7 +61,11 @@ namespace Saftbot.NET.Commands
         
         public abstract void InitializeVariables();
         
-        public virtual async void RunCommand(CommandInformation cmdinfo)
+
+        /// <returns>
+        /// Return bool is if the command got executed
+        /// </returns>
+        public virtual async Task<bool> RunCommand(CommandInformation cmdinfo)
         {
             // Calculate number of required parameters
             string[] required = Modules.Utility.FindNecessaryParameters(this);
@@ -69,13 +73,14 @@ namespace Saftbot.NET.Commands
             // Check if enough arguments are given
             if (cmdinfo.Arguments.Length < required.Length)
             {
-                cmdinfo.Messaging.Send(NoValue(required[cmdinfo.Arguments.Length]));
-                return;
+                await cmdinfo.Messaging.Send(NoValue(required[cmdinfo.Arguments.Length]));
+                return false;
             }
 
             var x = new Task<string>(() => InternalRunCommand(cmdinfo));
             x.Start();
-            cmdinfo.Messaging.Send(await x);
+            await cmdinfo.Messaging.Send(await x);
+            return true;
         }
 
         /// <summary>

@@ -17,7 +17,7 @@ namespace Saftbot.NET.Commands
             Name = "Crash";
             Description = "Shuts the bot down";
             PermsRequired = 3;
-            Usage = "";
+            Usage = new string[0];
         }
 
         public override async Task<bool> RunCommand(CommandInformation cmdinfo)

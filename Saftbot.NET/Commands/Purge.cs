@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Discore;
 
 namespace Saftbot.NET.Commands
 {
@@ -7,9 +9,9 @@ namespace Saftbot.NET.Commands
         public override void InitializeVariables()
         {
             Name = "Purge";
-            Description = "Bulk deletes messages in this channel";
+            Description = "Bulk deletes messages in this channel. Auto mode deletes a big monologue with a maximum of the given amount";
             PermsRequired = 2;
-            Usage = "<Amount of messages>";
+            Usage = new string[] { "<Amount of messages>", "[<auto>]" };
         }
 
         internal override string InternalRunCommand(CommandInformation cmdinfo)
@@ -18,11 +20,50 @@ namespace Saftbot.NET.Commands
             {
                 if (amount > 0)
                 {
-                    var messagesToDelete = cmdinfo.Messaging.GetTextChannel.GetMessages(cmdinfo.Message.Id, amount);
-                    cmdinfo.Messaging.GetTextChannel.BulkDeleteMessages(messagesToDelete.Result);
+                    var selectedMessages = cmdinfo.Messaging.GetTextChannel.GetMessages(cmdinfo.Message.Id, amount).Result;
+
+                    if ((cmdinfo.Arguments.Length >= 2) && (cmdinfo.Arguments[1].ToLower() == "auto"))
+                    {
+                        List<DiscordMessage> MonologueMessages = new List<DiscordMessage>();
+
+                        bool nonMonologueReached = false;
+                        Snowflake? userID = null;
+
+                        foreach (var msg in selectedMessages)
+                        {
+                            if (!nonMonologueReached)
+                            {
+                                if (msg.Author.IsBot)
+                                {
+                                    MonologueMessages.Add(msg);
+                                }
+                                else
+                                {
+                                    if (userID.HasValue)
+                                    {
+                                        if (msg.Author.Id == userID.Value)
+                                        {
+                                            MonologueMessages.Add(msg);
+                                        }
+                                        else
+                                            nonMonologueReached = true;
+                                    }
+                                    else
+                                    {
+                                        userID = (Snowflake?)msg.Author.Id;
+                                        MonologueMessages.Add(msg);
+                                    }
+                                }
+                            }
+                        }
+
+                        selectedMessages = MonologueMessages;
+                    }
+
+                    cmdinfo.Messaging.GetTextChannel.BulkDeleteMessages(selectedMessages);
                     cmdinfo.Message.Delete();
 
-                    return $"Purged {cmdinfo} Messages.";
+                    return $"Purged {selectedMessages.Count} Messages.";
                 }
             }
             return InvalidValue("Amount");

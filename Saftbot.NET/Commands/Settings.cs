@@ -21,7 +21,7 @@ namespace Saftbot.NET.Commands
             Name = "Settings";
             Description = "Changes server settings";
             PermsRequired = 3;
-            Usage = "<list/set/view> [<setting name>] [<new value>]";
+            Usage = new string[] { "<list/set/view>", "[<setting name>]", "[<new value>]" };
         }
         
         internal override string InternalRunCommand(CommandInformation cmdinfo)

@@ -34,6 +34,23 @@ namespace Saftbot.NET.Modules
             }
         }
 
+        public Task EnterAsync(string entry, bool addTimeStamp = true)
+        {
+            var task = new Task(() => Enter(entry, addTimeStamp));
+            task.Start();
+            return task;
+        }
+
+        public Task EnterAsync(Exception e)
+        {
+            return EnterAsync($"Encountered {e.GetType().ToString()} at {e.Source} \n Message: {e.Message} \n Data: {e.Data} \n ");
+        }
+
+        public Task EnterAsync(Exception e, string source)
+        {
+            return EnterAsync($"Encountered {e.GetType().ToString()} while {source} \n {e.Message} \n at: {e.Source} \n data: {e.Data}");
+        }
+
         public void Enter(string entry, bool addTimeStamp = true)
         {
             StreamWriter SW = File.AppendText(logFilePath);

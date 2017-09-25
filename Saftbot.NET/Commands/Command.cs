@@ -18,7 +18,7 @@ namespace Saftbot.NET.Commands
         /// </summary>
         public string Description;
         
-        public string Usage;
+        public string[] Usage;
 
         /// <summary>
         /// 0: No Perms needed
@@ -40,11 +40,9 @@ namespace Saftbot.NET.Commands
         
         public string NoValue(int parameterID)
         {
-            string[] parameters = Usage.Split(' ');
-
-            if (parameterID < parameters.Length)
+            if (parameterID < Usage.Length)
             {
-                string parameterName = parameters[parameterID].Replace('<', ' ').Replace('>', ' ');
+                string parameterName = Usage[parameterID].Replace('<', ' ').Replace('>', ' ');
                 parameterName = parameterName.Replace('[', ' ').Replace(']', ' ');
                 parameterName = parameterName.Trim();
 

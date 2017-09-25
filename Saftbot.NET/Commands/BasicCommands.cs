@@ -14,7 +14,7 @@ namespace Saftbot.NET.Commands
             Name = "Ping";
             Description = "Measures the time it takes the bot to respond";
             PermsRequired = 0;
-            Usage = "";
+            Usage = new string[0];
         }
        
         internal override string InternalRunCommand(CommandInformation cmdinfo)
@@ -31,7 +31,7 @@ namespace Saftbot.NET.Commands
             Name = "Say";
             Description = "Sends the message as if written by the Bot";
             PermsRequired = 0;
-            Usage = "<message>";
+            Usage = new string[] { "<message>" };
         }
 
         internal override string InternalRunCommand(CommandInformation cmdinfo)
@@ -55,7 +55,7 @@ namespace Saftbot.NET.Commands
             Name = "8ball";
             Description = "Rolls a fair 8ball";
             PermsRequired = 0;
-            Usage = "";
+            Usage = new string[0];
         }
 
         internal override string InternalRunCommand(CommandInformation cmdinfo)
@@ -73,7 +73,7 @@ namespace Saftbot.NET.Commands
             Name = "Status";
             Description = "Gives Information about the server the bot is hosted on";
             PermsRequired = 0;
-            Usage = "";
+            Usage = new string[0];
         }
 
         internal override string InternalRunCommand(CommandInformation cmdinfo)
@@ -89,7 +89,7 @@ namespace Saftbot.NET.Commands
             Name = "MyID";
             Description = "Tells you what your Discord-UID is";
             PermsRequired = 0;
-            Usage = "";
+            Usage = new string[0];
         }
         
         internal override string InternalRunCommand(CommandInformation cmdinfo)
@@ -105,7 +105,7 @@ namespace Saftbot.NET.Commands
             Name = "Laughter";
             Description = "Make the bot laugh";
             PermsRequired = 0;
-            Usage = "";
+            Usage = new string[0];
         }
 
         internal override string InternalRunCommand(CommandInformation cmdinfo)
@@ -132,7 +132,7 @@ namespace Saftbot.NET.Commands
             Name = "MakeOwnerAdmin";
             Description = "Gives Current guild owner admin perms";
             PermsRequired = 0;
-            Usage = "";
+            Usage = new string[0];
         }
 
         internal override string InternalRunCommand(CommandInformation cmdinfo)
@@ -163,7 +163,7 @@ namespace Saftbot.NET.Commands
             Name = "WhoIs";
             Description = "Report on the given user(s) permissions";
             PermsRequired = 0;
-            Usage = "<user mention(s)>";
+            Usage = new string[] { "<user mention(s)>" };
         }
 
         internal override string InternalRunCommand(CommandInformation cmdinfo)
@@ -202,7 +202,7 @@ namespace Saftbot.NET.Commands
             Name = "Repo";
             Description = "Links to the Bot's source code";
             PermsRequired = 0;
-            Usage = "";
+            Usage = new string[0];
         }
 
         internal override string InternalRunCommand(CommandInformation cmdinfo)
@@ -218,7 +218,7 @@ namespace Saftbot.NET.Commands
             Name = "Help";
             Description = "describes all commands ";
             PermsRequired = 0;
-            Usage = "[<command>]";
+            Usage = new string[] { "[<command>]" };
         }
 
         internal override string InternalRunCommand(CommandInformation cmdinfo)
@@ -229,7 +229,7 @@ namespace Saftbot.NET.Commands
                 {
                     if (cmd.Name.ToLower() == cmdinfo.Arguments[0].ToLower())
                     {
-                        return $"Usage: !{cmd.Name} {cmd.Usage}";
+                        return $"Usage: !{cmd.Name} {String.Join(' ',cmd.Usage)}";
                     }
                 }
 
@@ -256,7 +256,7 @@ namespace Saftbot.NET.Commands
             Name = "Square";
             Description = "Prints a message *squared*";
             PermsRequired = 0;
-            Usage = "<Message>";
+            Usage = new string[] { "<Message>" };
         }
 
         internal override string InternalRunCommand(CommandInformation cmdinfo)
@@ -282,7 +282,7 @@ namespace Saftbot.NET.Commands
             Name = "D";
             Description = "Rolls a fair dice with results between 1 und the given number (inclusive)";
             PermsRequired = 0;
-            Usage = "<Die size>";
+            Usage = new string[] { "<Die size>" };
         }
 
         internal override string InternalRunCommand(CommandInformation cmdinfo)

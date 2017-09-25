@@ -29,7 +29,7 @@ namespace Saftbot.NET.Commands
             Name = "Search";
             Description = "Searches using the given search provider. Use !Search -list for a list of providers.";
             PermsRequired = 0;
-            Usage = "[<provider>] <query>";
+            Usage = new string[] { "[<provider>]", "<query>" };
 
             ProviderSerializer.Path = Program.AssemblyPath + "SearchProviders.txt";
             ProviderSerializer.Update();

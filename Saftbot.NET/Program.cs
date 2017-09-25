@@ -53,7 +53,7 @@ namespace Saftbot.NET
         /// A version tag appended to the !status message.
         /// Doesn't serve any real purpose
         /// </summary>
-        public const string saftbotVersionTag = "SaftBot v3.4";
+        public const string saftbotVersionTag = "SaftBot v3.5 'Mostly async (again)-Edition'";
         
         #region initializing methods
         public static void Main(string[] args)
@@ -172,15 +172,13 @@ namespace Saftbot.NET
                     if(command == cmd.Name.ToLower())
                     {
                         // Log the send command asynchronously to keep respond time low
-                        new Thread(() => log.Enter($"{message.Author.Username} sent command: '{message.Content}'")).Start();
+                        log.EnterAsync($"{message.Author.Username} sent command: '{message.Content}'");
 
                         if (authorProfile.PermissionLevel >= cmd.PermsRequired)
                         {
                             try
                             {
                                 await cmd.RunCommand(cmdinfo);
-                                new Thread(() => log.Enter($"Response time was {(DateTime.Now - message.Timestamp).TotalMilliseconds}ms"))
-                                    .Start();
                             }
                             catch (Commands.StopNowException stopNow)
                             {
@@ -189,13 +187,13 @@ namespace Saftbot.NET
                             catch (Exception exception)
                             {
                                 log.Enter(exception, $"processing command '{message.Content}'");
-                                cmdinfo.Messaging.Send("The SaftBot ran into a problem processing your command. If this has happend before, " +
+                                await cmdinfo.Messaging.Send("The SaftBot ran into a problem processing your command. If this has happend before, " +
                                                        "please make a bug report here: https://github.com/loglob/SaftbotNET/issues");
                             }
                         }
                         else
                         {
-                            cmdinfo.Messaging.NoPerms();
+                            await cmdinfo.Messaging.NoPerms();
                         }
                     }
                 }

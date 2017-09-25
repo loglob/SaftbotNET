@@ -12,7 +12,7 @@ namespace Saftbot.NET.Commands
             Name = "MusicPermTest";
             Description = "Checks if you have playback permissions";
             PermsRequired = 0;
-            Usage = "";
+            Usage = new string[0];
         }
 
         internal override string InternalRunCommand(CommandInformation cmdinfo)

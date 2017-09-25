@@ -50,20 +50,17 @@ namespace Saftbot.NET.Modules
 
         public static string[] FindNecessaryParameters(Commands.Command cmd)
         {
-            List<string> args = new List<string>();
+            List<string> parameters = new List<string>();
 
-            if (cmd.Usage == "")
-                return new string[0];
-
-            foreach (string arg in cmd.Usage.Split(' '))
+            foreach (string parameter in cmd.Usage)
             {
-                if(!(arg.Contains('[')))
+                if (!(parameter.Contains("[")))
                 {
-                    args.Add(arg.Substring(1, arg.Length - 2));
+                    parameters.Add(parameter.Substring(1, parameter.Length - 2));
                 }
             }
 
-            return args.ToArray();
+            return parameters.ToArray();
         }
 
         public static string SystemSummary()

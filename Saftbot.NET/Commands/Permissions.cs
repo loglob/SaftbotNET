@@ -23,7 +23,7 @@ namespace Saftbot.NET.Commands
             Name = "Permissions";
             Description = "Changes the given user(s) permissions";
             PermsRequired = 3;
-            Usage = "<list/give/take/view> [<Permission name>] [<user mention(s)>]";
+            Usage = new string[] { "<list/give/take/view>", "[<Permission name>]", "[<user mention(s)>]" };
         }
         
         internal override string InternalRunCommand(CommandInformation cmdinfo)

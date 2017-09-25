@@ -261,10 +261,7 @@ namespace Saftbot.NET.Commands
         internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
             string input = String.Join(' ', cmdinfo.Arguments);
-
-            if (input == "")
-                return "";
-
+            
             string response = input;
 
             foreach (char chr in input.Substring(1))
@@ -289,21 +286,16 @@ namespace Saftbot.NET.Commands
 
         internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
-            if (cmdinfo.Arguments.Length >= 1)
+            if (Int32.TryParse(cmdinfo.Arguments[0], out int diesize))
             {
-                if (Int32.TryParse(cmdinfo.Arguments[0], out int diesize))
+                if (diesize > 1)
                 {
-                    if (diesize > 1)
-                    {
-                        Random rng = new Random();
-                        return rng.Next(1, (diesize + 1)).ToString();
-                    }
+                    Random rng = new Random();
+                    return rng.Next(1, (diesize + 1)).ToString();
                 }
-
-                return InvalidValue("Die size");
             }
-            else
-                return NoValue("Die Size");
+
+            return InvalidValue("Die size");
         }
     }
 }

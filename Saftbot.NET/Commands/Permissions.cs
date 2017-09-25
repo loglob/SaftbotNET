@@ -28,36 +28,34 @@ namespace Saftbot.NET.Commands
         
         internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
-            if (cmdinfo.Arguments.Length >= 1)
+            string mode = cmdinfo.Arguments[0].ToLower();
+
+            if (mode == "list")
+                return list();
+
+            if (cmdinfo.Arguments.Length >= 2 && (cmdinfo.Message.Mentions.Count > 0))
             {
-                string mode = cmdinfo.Arguments[0].ToLower();
 
-                if (mode == "list")
-                    return list();
-
-                if (cmdinfo.Arguments.Length >= 2 && (cmdinfo.Message.Mentions.Count > 0))
+                if (TryParsePerm(cmdinfo.Arguments[1], out permission permissionMode))
                 {
-
-                    if (TryParsePerm(cmdinfo.Arguments[1], out permission permissionMode))
+                    switch (mode)
                     {
-                        switch (mode)
-                        {
-                            case "give":
-                                return give(cmdinfo.Message.Mentions, permissionMode, cmdinfo.Guild.GuildID);
+                        case "give":
+                            return give(cmdinfo.Message.Mentions, permissionMode, cmdinfo.Guild.GuildID);
 
-                            case "take":
-                                return take(cmdinfo.Message.Mentions, permissionMode, cmdinfo.Guild.GuildID);
+                        case "take":
+                            return take(cmdinfo.Message.Mentions, permissionMode, cmdinfo.Guild.GuildID);
 
-                            case "view":
-                                return view(cmdinfo.Message.Mentions, permissionMode, cmdinfo.Guild.GuildID);
-                            default:
-                                return "Unknown mode. Use !help permissions for proper usage.";
-                        }
+                        case "view":
+                            return view(cmdinfo.Message.Mentions, permissionMode, cmdinfo.Guild.GuildID);
+                        default:
+                            return "Unknown mode. Use !help permissions for proper usage.";
                     }
-                    else
-                        return "Unknown permission. Use list for a list of permissions.";
                 }
+                else
+                    return "Unknown permission. Use list for a list of permissions.";
             }
+            
 
             return "Insufficient arguments supplied";
         }

@@ -14,24 +14,18 @@ namespace Saftbot.NET.Commands
 
         internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
-            if (cmdinfo.Arguments.Length >= 1)
+            if (Int32.TryParse(cmdinfo.Arguments[0], out int amount))
             {
-                if (Int32.TryParse(cmdinfo.Arguments[0], out int amount))
+                if (amount > 0)
                 {
-                    if (amount > 0)
-                    {
-                        var messagesToDelete = cmdinfo.Messaging.GetTextChannel.GetMessages(cmdinfo.Message.Id, amount);
-                        cmdinfo.Messaging.GetTextChannel.BulkDeleteMessages(messagesToDelete.Result);
-                        cmdinfo.Message.Delete();
+                    var messagesToDelete = cmdinfo.Messaging.GetTextChannel.GetMessages(cmdinfo.Message.Id, amount);
+                    cmdinfo.Messaging.GetTextChannel.BulkDeleteMessages(messagesToDelete.Result);
+                    cmdinfo.Message.Delete();
 
-                        return $"Purged {cmdinfo} Messages.";
-                    }
+                    return $"Purged {cmdinfo} Messages.";
                 }
-
-                return InvalidValue("Amount");
             }
-            else
-                return NoValue("Amount");
+            return InvalidValue("Amount");
         }
     }
 }

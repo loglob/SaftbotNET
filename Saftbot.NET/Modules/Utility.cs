@@ -48,6 +48,21 @@ namespace Saftbot.NET.Modules
             return count;
         }
 
+        public static string[] FindNecessaryParameters(Commands.Command cmd)
+        {
+            List<string> args = new List<string>();
+
+            foreach (string arg in cmd.Usage.Split(' '))
+            {
+                if(!(arg.Contains('[')))
+                {
+                    args.Add(arg.Substring(1, arg.Length - 2));
+                }
+            }
+
+            return args.ToArray();
+        }
+
         public static string SystemSummary()
         {
             int CoreCount = Environment.ProcessorCount;

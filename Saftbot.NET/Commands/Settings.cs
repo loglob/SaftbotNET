@@ -26,27 +26,25 @@ namespace Saftbot.NET.Commands
         
         internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
-            if (cmdinfo.Arguments.Length >= 1)
+            switch(cmdinfo.Arguments[0].ToLower())
             {
-                switch(cmdinfo.Arguments[0].ToLower())
-                {
-                    case ("set"):
-                        if (cmdinfo.Arguments.Length >= 3)
-                            return set(cmdinfo.Arguments[1], cmdinfo.Arguments[2], cmdinfo.Guild.GuildID);
-                        break;
+                case ("set"):
+                    if (cmdinfo.Arguments.Length >= 3)
+                        return set(cmdinfo.Arguments[1], cmdinfo.Arguments[2], cmdinfo.Guild.GuildID);
+                    break;
 
-                    case ("view"):
-                        if (cmdinfo.Arguments.Length >= 2)
-                            return view(cmdinfo.Arguments[1], cmdinfo.Guild.GuildID);
-                        break;
+                case ("view"):
+                    if (cmdinfo.Arguments.Length >= 2)
+                        return view(cmdinfo.Arguments[1], cmdinfo.Guild.GuildID);
+                    break;
 
-                    case ("list"):
-                        return list();
+                case ("list"):
+                    return list();
 
-                    default:
-                        return "Unknown mode. Use !help settings for proper usage";
-                }
+                default:
+                    return "Unknown mode. Use !help settings for proper usage";
             }
+            
 
             return "Insufficient arguments supplied";
         }

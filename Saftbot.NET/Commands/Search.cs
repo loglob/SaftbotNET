@@ -37,35 +37,31 @@ namespace Saftbot.NET.Commands
         
         internal override string InternalRunCommand(CommandInformation cmdinfo)
         {
-            if(cmdinfo.Arguments.Length > 0)
+            if (cmdinfo.Arguments[0].StartsWith("-"))
             {
-                if (cmdinfo.Arguments[0].StartsWith("-"))
+                if (cmdinfo.Arguments[0].ToLower() == "-list")
+                    return List();
+
+                string providerShorthand = cmdinfo.Arguments[0].Substring(1);
+
+                foreach (var provider in ProviderSerializer.Providers)
                 {
-                    if (cmdinfo.Arguments[0].ToLower() == "-list")
-                        return List();
-
-                    string providerShorthand = cmdinfo.Arguments[0].Substring(1);
-
-                    foreach (var provider in ProviderSerializer.Providers)
+                    if (provider.Matches(providerShorthand))
                     {
-                        if (provider.Matches(providerShorthand))
-                        {
-                            string[] query = new string[cmdinfo.Arguments.Length - 1];
-                            Array.Copy(cmdinfo.Arguments, 1, query, 0, query.Length);
+                        string[] query = new string[cmdinfo.Arguments.Length - 1];
+                        Array.Copy(cmdinfo.Arguments, 1, query, 0, query.Length);
 
-                            return provider.GetLink(providerShorthand, query);
-                        }
+                        return provider.GetLink(providerShorthand, query);
                     }
-                    
                 }
-
-                if (Program.database.FetchEntry(cmdinfo.Guild.GuildID).FetchSetting(DBSystem.ServerSettings.useGoogle))
-                    return ProviderSerializer.Providers[1].GetLink("", cmdinfo.Arguments);
-                else
-                    return ProviderSerializer.Providers[0].GetLink("", cmdinfo.Arguments);
-
+                    
             }
-            return "No arguments given...";
+
+            if (Program.database.FetchEntry(cmdinfo.Guild.GuildID).FetchSetting(DBSystem.ServerSettings.useGoogle))
+                return ProviderSerializer.Providers[1].GetLink("", cmdinfo.Arguments);
+            else
+                return ProviderSerializer.Providers[0].GetLink("", cmdinfo.Arguments);
+                
         }
 
         private string List()

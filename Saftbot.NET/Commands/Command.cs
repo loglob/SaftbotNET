@@ -60,15 +60,16 @@ namespace Saftbot.NET.Commands
         }
         
         public abstract void InitializeVariables();
-
+        
         public virtual async void RunCommand(CommandInformation cmdinfo)
         {
             // Calculate number of required parameters
-            int necessaryParameters = Modules.Utility.Count(Usage, '<') - Modules.Utility.Count(Usage, '[');
+            string[] required = Modules.Utility.FindNecessaryParameters(this);
+
             // Check if enough arguments are given
-            if (cmdinfo.Arguments.Length < necessaryParameters)
+            if (cmdinfo.Arguments.Length < required.Length)
             {
-                cmdinfo.Messaging.Send(NoValue(cmdinfo.Arguments.Length));
+                cmdinfo.Messaging.Send(NoValue(required[cmdinfo.Arguments.Length]));
                 return;
             }
 
@@ -77,6 +78,12 @@ namespace Saftbot.NET.Commands
             cmdinfo.Messaging.Send(await x);
         }
 
+        /// <summary>
+        /// If RunCommand() is not overridden, all arguments described in Usage with as necessary
+        /// (<...> and not [<...>])
+        /// </summary>
+        /// <param name="cmdinfo"></param>
+        /// <returns>The response for the user</returns>
         internal virtual string InternalRunCommand(CommandInformation cmdinfo)
         {
             throw new NotImplementedException();
